@@ -20,6 +20,8 @@ import BrowseJobs from "./pages/freelancer/BrowseJobs";
 import BrowseFreelancers from "./pages/client/BrowseFreelancers";
 import JobDetailsClient from "./pages/client/JobDetailsClient";
 import SubmitProposal from "./pages/freelancer/SubmitProposal";
+import Messages from "./pages/Messages";
+import TestChat from "./pages/TestChat";
 
 const queryClient = new QueryClient();
 
@@ -91,6 +93,8 @@ const App = () => (
           {/* Public Routes */}
           <Route path="/freelancer/public-profile/:id" element={<PublicProfile />} />
           <Route path="/pay" element={<PaymentPage />} />
+          <Route path="/messages" element={<Messages />} />
+          <Route path="/test-chat" element={<TestChat />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

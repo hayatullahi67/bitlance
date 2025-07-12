@@ -13,7 +13,8 @@ import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { uploadImageWithRetry, validateImageFile } from "@/lib/imageUpload";
 
 const defaultProfile = {
-  name: "",
+  firstName: "",
+  lastName: "",
   title: "",
   location: "",
   overview: "",
@@ -63,15 +64,32 @@ const Profile: React.FC = () => {
           
           if (profileDoc.exists()) {
             const profileData = profileDoc.data();
-        setProfile({
-          ...defaultProfile,
-              ...profileData,
-              uid: user.uid,
-            });
+            // Also fetch user data from users collection to get firstName and lastName
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (userDoc.exists()) {
+              const userData = userDoc.data();
+              setProfile({
+                ...defaultProfile,
+                ...profileData,
+                firstName: userData.firstName || profileData.firstName || "",
+                lastName: userData.lastName || profileData.lastName || "",
+                uid: user.uid,
+              });
+            } else {
+              setProfile({
+                ...defaultProfile,
+                ...profileData,
+                uid: user.uid,
+              });
+            }
           } else {
             // Create new profile if it doesn't exist
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            const userData = userDoc.exists() ? userDoc.data() : {};
             const newProfile = {
               ...defaultProfile,
+              firstName: userData.firstName || "",
+              lastName: userData.lastName || "",
               uid: user.uid,
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
@@ -167,7 +185,8 @@ const Profile: React.FC = () => {
 
   const handleEditSave = async () => {
     if (editType === 'basic') {
-      updateProfile('name', editData.name);
+      updateProfile('firstName', editData.firstName);
+      updateProfile('lastName', editData.lastName);
       updateProfile('title', editData.title);
       updateProfile('location', editData.location);
       updateProfile('overview', editData.overview);
@@ -243,7 +262,7 @@ const Profile: React.FC = () => {
 
   if (loading) {
     return (
-      <Layout userType="freelancer" userName="Loading..." userAvatar={profile.imageUrl}>
+      <Layout userType="freelancer" userName={`${profile.firstName} ${profile.lastName}`.trim() || "Loading..."} userAvatar={profile.imageUrl}>
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto"></div>
@@ -257,7 +276,7 @@ const Profile: React.FC = () => {
   return (
     <Layout
       userType="freelancer"
-      userName={profile.name || "Complete Your Profile"}
+      userName={`${profile.firstName} ${profile.lastName}`.trim() || "Complete Your Profile"}
       userAvatar={profile.imageUrl}
       onLogout={handleLogout}
     >
@@ -284,7 +303,7 @@ const Profile: React.FC = () => {
           </div>
           <div className="hidden md:block">
             <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              {profile.name || <span className="italic text-gray-200">Add your name</span>}
+              {`${profile.firstName} ${profile.lastName}`.trim() || <span className="italic text-gray-200">Add your name</span>}
               {profile.verified && (
                 <span className="ml-1 px-2 py-0.5 bg-white text-orange-600 text-xs rounded-full font-semibold flex items-center gap-1">
                   <svg className="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 00-1.414 0L9 11.586 6.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z" /></svg>
@@ -365,7 +384,8 @@ const Profile: React.FC = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => openEditDialog('basic', {
-                      name: profile.name,
+                      firstName: profile.firstName,
+        lastName: profile.lastName,
                       title: profile.title,
                       location: profile.location,
                       overview: profile.overview,
@@ -573,11 +593,19 @@ const Profile: React.FC = () => {
             {editType === 'basic' && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
                   <Input
-                    value={editData.name || ''}
-                    onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-                    placeholder="Your full name"
+                    value={editData.firstName || ''}
+                    onChange={(e) => setEditData({ ...editData, firstName: e.target.value })}
+                    placeholder="Your first name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                  <Input
+                    value={editData.lastName || ''}
+                    onChange={(e) => setEditData({ ...editData, lastName: e.target.value })}
+                    placeholder="Your last name"
                   />
                 </div>
                 <div>

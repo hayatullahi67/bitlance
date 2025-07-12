@@ -67,6 +67,15 @@ export interface ProposalData {
   updatedAt: Timestamp;
   attachments?: string[];
   portfolio?: string[];
+  file?: {
+    name: string;
+    data: string;
+    type: string;
+  };
+  history?: Array<{
+    status: string;
+    at: string;
+  }>;
 }
 
 export interface ProposalUpdateData {
@@ -323,15 +332,19 @@ export const incrementJobViews = async (jobId: string): Promise<void> => {
  */
 export const trackJobView = async (jobId: string, freelancerId: string): Promise<boolean> => {
   try {
+    console.log(`Attempting to track view for job ${jobId} by freelancer ${freelancerId}`);
+    
     // Check if this freelancer has already viewed this job
     const jobViewRef = doc(db, "jobs", jobId, "jobViews", freelancerId);
     const jobViewDoc = await getDoc(jobViewRef);
     
     // If freelancer has already viewed this job, don't count as new view
     if (jobViewDoc.exists()) {
-      console.log(`Freelancer ${freelancerId} has already viewed job ${jobId}`);
+      console.log(`Freelancer ${freelancerId} has already viewed job ${jobId} - skipping view count`);
       return false;
     }
+    
+    console.log(`Freelancer ${freelancerId} has not viewed job ${jobId} before - proceeding with view tracking`);
     
     // Use Firestore transaction to safely increment views and create view record
     await runTransaction(db, async (transaction) => {
@@ -344,6 +357,7 @@ export const trackJobView = async (jobId: string, freelancerId: string): Promise
       }
       
       const currentViews = jobDoc.data().views || 0;
+      console.log(`Current views for job ${jobId}: ${currentViews}, incrementing to ${currentViews + 1}`);
       
       // Increment views count
       transaction.update(jobRef, {
@@ -359,7 +373,7 @@ export const trackJobView = async (jobId: string, freelancerId: string): Promise
       });
     });
     
-    console.log(`New view tracked for job ${jobId} by freelancer ${freelancerId}`);
+    console.log(`Successfully tracked new view for job ${jobId} by freelancer ${freelancerId}`);
     return true;
   } catch (error) {
     console.error("Error tracking job view:", error);

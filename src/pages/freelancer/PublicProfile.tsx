@@ -37,17 +37,26 @@ const PublicProfile: React.FC = () => {
         if (isOwnProfile) {
           // User is viewing their own profile - check if they're a freelancer
           try {
-            const userDoc = await getDoc(doc(db, "freelancers", user.uid));
+            const userDoc = await getDoc(doc(db, "users", user.uid));
             if (userDoc.exists()) {
-              setUserType("freelancer");
-              setUserName(userDoc.data().name || "Freelancer");
-            } else {
-              // Check if they're a client
-              const clientDoc = await getDoc(doc(db, "clients", user.uid));
-              if (clientDoc.exists()) {
-                setUserType("client");
-                setUserName(clientDoc.data().name || "Client");
+              const userData = userDoc.data();
+              const fullName = `${userData.firstName} ${userData.lastName}`.trim();
+              
+              // Check if they're a freelancer
+              const freelancerDoc = await getDoc(doc(db, "freelancers", user.uid));
+              if (freelancerDoc.exists()) {
+                setUserType("freelancer");
+                setUserName(fullName || "Freelancer");
+              } else {
+                // Check if they're a client
+                const clientDoc = await getDoc(doc(db, "clients", user.uid));
+                if (clientDoc.exists()) {
+                  setUserType("client");
+                  setUserName(fullName || "Client");
+                }
               }
+            } else {
+              setUserName("User");
             }
           } catch (error) {
             console.error("Error determining user type:", error);
@@ -57,16 +66,25 @@ const PublicProfile: React.FC = () => {
         } else {
           // User is viewing someone else's profile - determine their type
           try {
-            const userDoc = await getDoc(doc(db, "freelancers", user.uid));
+            const userDoc = await getDoc(doc(db, "users", user.uid));
             if (userDoc.exists()) {
-              setUserType("freelancer");
-              setUserName(userDoc.data().name || "Freelancer");
-            } else {
-              const clientDoc = await getDoc(doc(db, "clients", user.uid));
-              if (clientDoc.exists()) {
-                setUserType("client");
-                setUserName(clientDoc.data().name || "Client");
+              const userData = userDoc.data();
+              const fullName = `${userData.firstName} ${userData.lastName}`.trim();
+              
+              // Check if they're a freelancer
+              const freelancerDoc = await getDoc(doc(db, "freelancers", user.uid));
+              if (freelancerDoc.exists()) {
+                setUserType("freelancer");
+                setUserName(fullName || "Freelancer");
+              } else {
+                const clientDoc = await getDoc(doc(db, "clients", user.uid));
+                if (clientDoc.exists()) {
+                  setUserType("client");
+                  setUserName(fullName || "Client");
+                }
               }
+            } else {
+              setUserName("User");
             }
           } catch (error) {
             console.error("Error determining user type:", error);
@@ -107,7 +125,19 @@ const PublicProfile: React.FC = () => {
       
       if (profileDoc.exists()) {
         const profileData = profileDoc.data();
-        setProfile(profileData);
+        
+        // Also fetch user data to get firstName and lastName
+        const userDoc = await getDoc(doc(db, "users", uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          setProfile({
+            ...profileData,
+            firstName: userData.firstName || profileData.firstName || "",
+            lastName: userData.lastName || profileData.lastName || "",
+          });
+        } else {
+          setProfile(profileData);
+        }
       } else {
         setNotFound(true);
       }
@@ -181,7 +211,7 @@ const PublicProfile: React.FC = () => {
           </div>
           <div className="hidden md:block">
             <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              {profile.name || "Freelancer"}
+              {`${profile.firstName} ${profile.lastName}`.trim() || "Freelancer"}
               {profile.verified && (
                 <span className="ml-1 px-2 py-0.5 bg-white text-orange-600 text-xs rounded-full font-semibold flex items-center gap-1">
                   <svg className="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 00-1.414 0L9 11.586 6.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l7-7a1 1 0 000-1.414z" /></svg>

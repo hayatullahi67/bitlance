@@ -21,6 +21,7 @@ const app = initializeApp(firebaseConfig);
 // Initialize services
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+export { Timestamp } from "firebase/firestore";
 
 // Initialize analytics only in browser environment
 let analytics;

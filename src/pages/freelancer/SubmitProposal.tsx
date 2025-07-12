@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { ArrowLeft, CheckCircle, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { createNotification } from "@/lib/notifications";
 
 const MAX_FILE_SIZE_MB = 5;
 const MAX_COVER_LETTER = 2000;
@@ -31,6 +32,8 @@ const SubmitProposal = () => {
   const [fileName, setFileName] = useState("");
   const [fileError, setFileError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [portfolioLinks, setPortfolioLinks] = useState<string[]>([]);
+  const [newPortfolioLink, setNewPortfolioLink] = useState("");
 
   useEffect(() => {
     setUser(auth.currentUser);
@@ -87,6 +90,16 @@ const SubmitProposal = () => {
     setFileError("");
   };
 
+  const handleAddPortfolioLink = () => {
+    if (newPortfolioLink.trim() && !portfolioLinks.includes(newPortfolioLink.trim())) {
+      setPortfolioLinks([...portfolioLinks, newPortfolioLink.trim()]);
+      setNewPortfolioLink("");
+    }
+  };
+  const handleRemovePortfolioLink = (link: string) => {
+    setPortfolioLinks(portfolioLinks.filter(l => l !== link));
+  };
+
   const isValid = coverLetter.trim().length > 0 && coverLetter.length <= MAX_COVER_LETTER && !fileError;
 
   const handleFormSubmit = (e: React.FormEvent) => {
@@ -99,7 +112,9 @@ const SubmitProposal = () => {
     if (!user || !job) return;
     setSubmitting(true);
     try {
+      const proposalId = `proposal_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const proposal = {
+        id: proposalId, // Add unique ID
         freelancerId: user.uid,
         freelancerName: userProfile?.name || user.displayName || "Freelancer",
         freelancerAvatar: userProfile?.avatar || "https://ui-avatars.com/api/?name=" + encodeURIComponent(userProfile?.name || user.displayName || "F"),
@@ -107,8 +122,12 @@ const SubmitProposal = () => {
         budget,
         deliveryTime: delivery,
         file: file ? { name: fileName, data: file } : null,
+        portfolio: portfolioLinks,
         createdAt: new Date(),
         status: "pending",
+        history: [
+          { status: "pending", at: new Date().toISOString() }
+        ]
       };
       const jobRef = doc(db, "jobs", job.id);
       const jobSnap = await getDoc(jobRef);
@@ -121,6 +140,38 @@ const SubmitProposal = () => {
       setSuccess(true);
       toast({ title: "Proposal Submitted!", description: "Your proposal was sent successfully.", variant: "default" });
       setTimeout(() => navigate(`/freelancer/job/${job.id}`), 2000);
+      if (job && job.clientId) {
+        try {
+          // Get freelancer and client data for notification
+          const freelancerDoc = await getDoc(doc(db, "users", user.uid));
+          const clientDoc = await getDoc(doc(db, "users", job.clientId));
+          
+          const freelancerData = freelancerDoc.exists() ? freelancerDoc.data() : { firstName: "Freelancer", lastName: "" };
+          const clientData = clientDoc.exists() ? clientDoc.data() : { firstName: "Client", lastName: "" };
+
+          console.log("Creating proposal notification:", {
+            senderUuid: user.uid,
+            receiverUuid: job.clientId,
+            senderName: `${freelancerData.firstName} ${freelancerData.lastName}`,
+            receiverName: `${clientData.firstName} ${clientData.lastName}`,
+            message: `New proposal received for "${job.title}" from ${freelancerData.firstName}`
+          });
+
+          await createNotification({
+            senderUuid: user.uid,
+            receiverUuid: job.clientId,
+            senderName: `${freelancerData.firstName} ${freelancerData.lastName}`,
+            receiverName: `${clientData.firstName} ${clientData.lastName}`,
+            type: "new_proposal",
+            message: `New proposal received for "${job.title}" from ${freelancerData.firstName}`,
+            link: `/client/job/${job.id}`,
+          });
+          
+          console.log("Proposal notification created successfully");
+        } catch (error) {
+          console.error("Error creating proposal notification:", error);
+        }
+      }
     } catch (err) {
       toast({ title: "Error", description: "Failed to submit proposal.", variant: "destructive" });
     } finally {
@@ -200,6 +251,26 @@ const SubmitProposal = () => {
               />
             </div>
             <div className="mb-5">
+              <label className="block font-medium mb-1">Portfolio Links <span className="text-xs text-gray-400">(optional)</span></label>
+              <div className="flex gap-2 mb-2">
+                <Input
+                  type="url"
+                  placeholder="https://your-portfolio.com/item"
+                  value={newPortfolioLink}
+                  onChange={e => setNewPortfolioLink(e.target.value)}
+                />
+                <Button type="button" variant="outline" onClick={handleAddPortfolioLink} disabled={!newPortfolioLink.trim()}>Add</Button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {portfolioLinks.map((link, idx) => (
+                  <span key={idx} className="bg-gray-100 px-2 py-1 rounded text-xs flex items-center gap-1">
+                    <a href={link} target="_blank" rel="noopener noreferrer" className="underline text-blue-600">{link}</a>
+                    <Button type="button" size="icon" variant="ghost" className="p-0 h-4 w-4" onClick={() => handleRemovePortfolioLink(link)}><X className="h-3 w-3" /></Button>
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div className="mb-5">
               <label className="block font-medium mb-1">Attachment <span className="text-xs text-gray-400">(optional, max {MAX_FILE_SIZE_MB}MB)</span></label>
               <div className="flex items-center gap-2">
                 <Input type="file" accept="*" onChange={handleFileChange} />
@@ -233,6 +304,16 @@ const SubmitProposal = () => {
                 </div>
                 <div className="mb-2 text-sm text-gray-700"><span className="font-semibold">Budget:</span> {budget ? `${budget} BTC` : <span className="text-gray-400">(Not specified)</span>}</div>
                 <div className="mb-2 text-sm text-gray-700"><span className="font-semibold">Delivery:</span> {delivery || <span className="text-gray-400">(Not specified)</span>}</div>
+                {portfolioLinks.length > 0 && (
+                  <div className="mb-2 text-sm text-gray-700">
+                    <span className="font-semibold">Portfolio Links:</span>
+                    <ul className="list-disc ml-6 mt-1">
+                      {portfolioLinks.map((link, idx) => (
+                        <li key={idx}><a href={link} target="_blank" rel="noopener noreferrer" className="underline text-blue-600">{link}</a></li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 {fileName && <div className="mb-2 text-sm text-gray-700"><span className="font-semibold">Attachment:</span> {fileName}</div>}
                 {file && fileName && file.startsWith("data:image") && (
                   <img src={file} alt="Preview" className="mt-2 max-h-32 rounded border" />

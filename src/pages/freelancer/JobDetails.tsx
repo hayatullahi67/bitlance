@@ -30,7 +30,6 @@ import { auth, db } from "@/lib/firebaseClient";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
-import { trackJobView } from "@/lib/jobManagement";
 import { formatDistanceToNow } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -128,20 +127,8 @@ const JobDetails = () => {
         }
       }
 
-      // Track job view for freelancer (only if user is logged in and is a freelancer)
-      const currentUser = auth.currentUser;
-      if (currentUser && jobData.clientId !== currentUser.uid) {
-        try {
-          const isNewView = await trackJobView(id, currentUser.uid);
-          if (isNewView) {
-            // Update the local job data to reflect the new view count
-            setJob(prevJob => prevJob ? { ...prevJob, views: (prevJob.views || 0) + 1 } : prevJob);
-          }
-        } catch (viewError) {
-          console.error("Error tracking job view:", viewError);
-          // Don't fail the whole request if view tracking fails
-        }
-      }
+      // Note: View tracking is now handled in BrowseJobs.tsx when clicking on a job
+      // This prevents double-counting views when navigating from browse to details
 
     } catch (error) {
       console.error("Error loading job data:", error);

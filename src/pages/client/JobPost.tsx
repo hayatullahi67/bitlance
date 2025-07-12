@@ -24,7 +24,9 @@ import {
 import { handleLogout } from "@/lib/authUtils";
 import { createJob } from "@/lib/jobManagement";
 import { useToast } from "@/hooks/use-toast";
-import { auth } from "@/lib/firebaseClient";
+import { auth, db } from "@/lib/firebaseClient";
+import { doc, getDoc } from "firebase/firestore";
+import { createNotification } from "@/lib/notifications";
 
 const JobPost = () => {
   const navigate = useNavigate();
@@ -153,6 +155,10 @@ const JobPost = () => {
         throw new Error("You must be logged in to post a job");
       }
 
+      // Get user data for notification
+      const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+      const userData = userDoc.exists() ? userDoc.data() : { firstName: "Client", lastName: "" };
+
       const jobDataWithClientId = {
         ...jobData,
         clientId: currentUser.uid
@@ -170,6 +176,33 @@ const JobPost = () => {
       setTimeout(() => {
     navigate("/client-dashboard");
       }, 2000);
+
+      // After job is posted:
+      if (currentUser) {
+        await createNotification({
+          senderUuid: currentUser.uid,
+          receiverUuid: currentUser.uid,
+          senderName: `${userData.firstName} ${userData.lastName}`,
+          receiverName: `${userData.firstName} ${userData.lastName}`,
+          type: "job_posted",
+          message: `Job "${jobData.title}" posted successfully!`,
+          link: `/client/job/${jobId}`,
+        });
+
+        // Job posted confirmation notification
+        await createNotification({
+          senderUuid: "system",
+          receiverUuid: currentUser.uid,
+          senderName: "Bitlance Platform",
+          receiverName: `${userData.firstName} ${userData.lastName}`,
+          type: "job_posted",
+          message: `Job "${jobData.title}" posted successfully! Freelancers can now view and apply.`,
+          link: `/client/job/${jobId}`,
+        });
+
+        // TODO: In the future, we can add notifications to freelancers who match the job skills
+        // This would require querying freelancers by skills and sending them notifications
+      }
 
     } catch (error) {
       console.error('Error posting job:', error);

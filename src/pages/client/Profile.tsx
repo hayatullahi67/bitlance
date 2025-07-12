@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -43,19 +43,56 @@ import {
   Share2
 } from "lucide-react";
 import { handleLogout } from "@/lib/authUtils";
+import { auth, db } from "@/lib/firebaseClient";
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 
 const ClientProfile = () => {
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
+  const [userName, setUserName] = useState("");
+  const [userData, setUserData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Fetch user data from Firebase
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          setLoading(true);
+          // Fetch user's full name from users collection
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            const fullName = `${userData.firstName} ${userData.lastName}`;
+            setUserName(fullName);
+            setUserData(userData);
+          } else {
+            setUserName("Client");
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+          setUserName("Client");
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
+        setUserName("Client");
+      }
+    });
+
+    return () => unsubscribeAuth();
+  }, []);
 
   const [profileData, setProfileData] = useState({
-    name: "John Davis",
+    name: userName || "Client",
     title: "CEO & Founder",
     company: "TechCorp Inc.",
     location: "San Francisco, CA",
     website: "https://techcorp.com",
-    email: "john@techcorp.com",
+    email: userData?.email || "client@example.com",
     phone: "+1 (555) 123-4567",
     joinedDate: "March 2022",
     totalSpent: "0.45 BTC",
@@ -69,6 +106,17 @@ const ClientProfile = () => {
     founded: "2018",
     budget: "0.05-0.15 BTC per project"
   });
+
+  // Update profile data when user data is loaded
+  useEffect(() => {
+    if (userData) {
+      setProfileData(prev => ({
+        ...prev,
+        name: userName,
+        email: userData.email || prev.email
+      }));
+    }
+  }, [userData, userName]);
 
   const activeProjects = [
     {
@@ -125,7 +173,7 @@ const ClientProfile = () => {
   return (
     <Layout 
       userType="client"
-      userName="John Davis"
+      userName={userName}
       userAvatar="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
       title="Profile"
       onPostJob={() => navigate("/post-job")}
@@ -362,7 +410,7 @@ const ClientProfile = () => {
                           <span className="font-medium">Freelancer:</span> {project.freelancer}
                         </div>
                         <div>
-                          <span className="font-medium">Budget:</span> {project.budget}
+                          <span className="font-medium">Budget:</span> {typeof project.budget === 'object' ? `${project.budget.min || '?'} - ${project.budget.max || '?'} BTC` : project.budget}
                         </div>
                         <div>
                           <span className="font-medium">Deadline:</span> {project.deadline}

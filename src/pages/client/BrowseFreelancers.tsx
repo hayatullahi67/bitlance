@@ -24,11 +24,19 @@ const BrowseFreelancers = () => {
   const [sortBy, setSortBy] = useState<SortOptions>({ field: 'newest', direction: 'desc' });
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedSort, setSelectedSort] = useState("newest");
+  const [btcUsdRate, setBtcUsdRate] = useState<number>(0);
 
   // Load freelancers on component mount
   useEffect(() => {
     loadFreelancers();
   }, [filters, sortBy]);
+
+  useEffect(() => {
+    fetch('https://blockchain.info/ticker')
+      .then(res => res.json())
+      .then(data => setBtcUsdRate(data.USD.last))
+      .catch(() => setBtcUsdRate(0));
+  }, []);
 
   const loadFreelancers = async () => {
     setLoading(true);
@@ -97,19 +105,13 @@ const BrowseFreelancers = () => {
     setSortBy(sortMap[sort] || { field: 'newest', direction: 'desc' });
   };
 
-  const getAverageRating = (workHistory: any[]) => {
-    if (workHistory.length === 0) return 0;
-    const totalRating = workHistory.reduce((sum, work) => sum + work.rating, 0);
-    return (totalRating / workHistory.length).toFixed(1);
+  const formatHourlyRate = (rate: number | undefined) => {
+    return `$${rate ?? 0}/hour`;
   };
 
-  const formatHourlyRate = (rate: number) => {
-    return `$${rate}/hour`;
-  };
-
-  const formatBTCRate = (rate: number) => {
-    // Rough conversion: $1 = ~0.000023 BTC (approximate)
-    const btcRate = (rate * 0.000023).toFixed(4);
+  const formatBTCRate = (rate: number | undefined) => {
+    if (!btcUsdRate || btcUsdRate === 0 || !rate) return "~0.0000 BTC/hour";
+    const btcRate = (rate / btcUsdRate).toFixed(4);
     return `~${btcRate} BTC/hour`;
   };
 
@@ -217,73 +219,74 @@ const BrowseFreelancers = () => {
             </Card>
           ) : (
             <div className="grid gap-6">
-              {freelancers.map((freelancer) => (
-                <Card key={freelancer.uid} className="hover:shadow-md transition-shadow cursor-pointer">
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div className="flex items-center space-x-4">
-                        <Avatar className="h-16 w-16">
-                          <AvatarImage src={freelancer.imageUrl} />
-                          <AvatarFallback>{freelancer.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <CardTitle className="text-xl">{freelancer.name}</CardTitle>
-                          <CardDescription>{freelancer.title}</CardDescription>
-                          <div className="flex items-center space-x-2 text-gray-500 mt-1">
-                            <MapPin className="h-4 w-4" />
-                            <span>{freelancer.location}</span>
-                          </div>
-                          <div className="flex items-center space-x-2 text-green-600 mt-1">
-                            <Badge className="bg-green-100 text-green-800 text-xs">
-                              {freelancer.availability}
-                            </Badge>
-                            {freelancer.verified && (
-                              <Badge className="bg-blue-100 text-blue-800 text-xs">
-                                Verified
+              {freelancers.map((freelancer) => {
+                const name = [freelancer.firstName, freelancer.lastName].filter(Boolean).join(" ");
+                return (
+                  <Card key={freelancer.uid} className="hover:shadow-md transition-shadow cursor-pointer">
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-center space-x-4">
+                          <Avatar className="h-16 w-16">
+                            <AvatarImage src={freelancer.imageUrl} />
+                            <AvatarFallback>{name ? name.split(' ').map(n => n[0]).join('') : "?"}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <CardTitle className="text-xl">{name}</CardTitle>
+                            <CardDescription>{freelancer.title}</CardDescription>
+                            <div className="flex items-center space-x-2 text-gray-500 mt-1">
+                              <MapPin className="h-4 w-4" />
+                              <span>{freelancer.location}</span>
+                            </div>
+                            <div className="flex items-center space-x-2 text-green-600 mt-1">
+                              <Badge className="bg-green-100 text-green-800 text-xs">
+                                {freelancer.availability}
                               </Badge>
-                            )}
+                              {freelancer.verified && (
+                                <Badge className="bg-blue-100 text-blue-800 text-xs">
+                                  Verified
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-lg font-semibold text-orange-600 mb-2">
+                            {formatHourlyRate(freelancer.hourlyRate)}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {formatBTCRate(freelancer.hourlyRate)}
+                          </div>
+                          <div className="flex items-center space-x-1 mt-2">
                           </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-lg font-semibold text-orange-600 mb-2">
-                          {formatHourlyRate(freelancer.hourlyRate)}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {formatBTCRate(freelancer.hourlyRate)}
-                        </div>
-                        <div className="flex items-center space-x-1 mt-2">
-                          <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                          <span className="font-semibold">{getAverageRating(freelancer.workHistory)}</span>
-                        </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {(freelancer.skills ?? []).slice(0, 5).map((skill, index) => (
+                          <Badge key={index} variant="secondary" className="text-xs">
+                            {skill.name}
+                          </Badge>
+                        ))}
+                        {(freelancer.skills?.length ?? 0) > 5 && (
+                          <Badge variant="secondary" className="text-xs">
+                            +{freelancer.skills.length - 5} more
+                          </Badge>
+                        )}
                       </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {freelancer.skills.slice(0, 5).map((skill, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
-                          {skill.name}
-                        </Badge>
-                      ))}
-                      {freelancer.skills.length > 5 && (
-                        <Badge variant="secondary" className="text-xs">
-                          +{freelancer.skills.length - 5} more
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button 
-                        size="sm" 
-                        className="flex-1"
-                        onClick={() => navigate(`/freelancer/public-profile/${freelancer.uid}`)}
-                      >
-                        View Profile
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      <div className="flex space-x-2">
+                        <Button 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => navigate(`/freelancer/public-profile/${freelancer.uid}`)}
+                        >
+                          View Profile
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           )}
         </div>

@@ -1,15 +1,16 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader as CardHeaderUI, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
-import { Zap, User, Briefcase } from "lucide-react";
+import { Zap, User, Briefcase, Menu, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { auth, db } from "@/lib/firebaseClient";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
+import LandingHeader from "@/components/layout/LandingHeader";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -103,127 +104,121 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center space-x-2 mb-4">
-            <Zap className="h-8 w-8 text-orange-500" />
-            <h1 className="text-3xl font-bold text-gray-900">Welcome Back</h1>
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50">
+      <LandingHeader />
+      <div className="flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="client" className="flex items-center space-x-2">
+                <Briefcase className="h-4 w-4" />
+                <span>Client</span>
+              </TabsTrigger>
+              <TabsTrigger value="freelancer" className="flex items-center space-x-2">
+                <User className="h-4 w-4" />
+                <span>Freelancer</span>
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="client">
+              <Card>
+                <CardHeaderUI>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Briefcase className="h-5 w-5 text-orange-500" />
+                    <span>Client Login</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Access your client dashboard
+                  </CardDescription>
+                </CardHeaderUI>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="client-email">Email</Label>
+                    <Input 
+                      id="client-email" 
+                      type="email" 
+                      placeholder="your@email.com"
+                      value={formData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="client-password">Password</Label>
+                    <Input 
+                      id="client-password" 
+                      type="password" 
+                      placeholder="Your password"
+                      value={formData.password}
+                      onChange={(e) => handleInputChange('password', e.target.value)}
+                    />
+                  </div>
+
+                  <Button 
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+                    onClick={() => handleLogin("client")}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Signing In..." : "Sign In as Client"}
+                  </Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="freelancer">
+              <Card>
+                <CardHeaderUI>
+                  <CardTitle className="flex items-center space-x-2">
+                    <User className="h-5 w-5 text-orange-500" />
+                    <span>Freelancer Login</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Access your freelancer dashboard
+                  </CardDescription>
+                </CardHeaderUI>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="freelancer-email">Email</Label>
+                    <Input 
+                      id="freelancer-email" 
+                      type="email" 
+                      placeholder="your@email.com"
+                      value={formData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="freelancer-password">Password</Label>
+                    <Input 
+                      id="freelancer-password" 
+                      type="password" 
+                      placeholder="Your password"
+                      value={formData.password}
+                      onChange={(e) => handleInputChange('password', e.target.value)}
+                    />
+                  </div>
+
+                  <Button 
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+                    onClick={() => handleLogin("freelancer")}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Signing In..." : "Sign In as Freelancer"}
+                  </Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+
+          <div className="text-center mt-6">
+            <p className="text-gray-600">
+              Don't have an account?{" "}
+              <Button variant="link" className="text-orange-500 p-0" onClick={() => navigate("/signup")}>
+                Sign up here
+              </Button>
+            </p>
           </div>
-          <p className="text-gray-600">Sign in to your Bitlance account</p>
-        </div>
-
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="client" className="flex items-center space-x-2">
-              <Briefcase className="h-4 w-4" />
-              <span>Client</span>
-            </TabsTrigger>
-            <TabsTrigger value="freelancer" className="flex items-center space-x-2">
-              <User className="h-4 w-4" />
-              <span>Freelancer</span>
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="client">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Briefcase className="h-5 w-5 text-orange-500" />
-                  <span>Client Login</span>
-                </CardTitle>
-                <CardDescription>
-                  Access your client dashboard
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="client-email">Email</Label>
-                  <Input 
-                    id="client-email" 
-                    type="email" 
-                    placeholder="your@email.com"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="client-password">Password</Label>
-                  <Input 
-                    id="client-password" 
-                    type="password" 
-                    placeholder="Your password"
-                    value={formData.password}
-                    onChange={(e) => handleInputChange('password', e.target.value)}
-                  />
-                </div>
-
-                <Button 
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white"
-                  onClick={() => handleLogin("client")}
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Signing In..." : "Sign In as Client"}
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="freelancer">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <User className="h-5 w-5 text-orange-500" />
-                  <span>Freelancer Login</span>
-                </CardTitle>
-                <CardDescription>
-                  Access your freelancer dashboard
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="freelancer-email">Email</Label>
-                  <Input 
-                    id="freelancer-email" 
-                    type="email" 
-                    placeholder="your@email.com"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="freelancer-password">Password</Label>
-                  <Input 
-                    id="freelancer-password" 
-                    type="password" 
-                    placeholder="Your password"
-                    value={formData.password}
-                    onChange={(e) => handleInputChange('password', e.target.value)}
-                  />
-                </div>
-
-                <Button 
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white"
-                  onClick={() => handleLogin("freelancer")}
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Signing In..." : "Sign In as Freelancer"}
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-
-        <div className="text-center mt-6">
-          <p className="text-gray-600">
-            Don't have an account?{" "}
-            <Button variant="link" className="text-orange-500 p-0" onClick={() => navigate("/signup")}>
-              Sign up here
-            </Button>
-          </p>
         </div>
       </div>
     </div>

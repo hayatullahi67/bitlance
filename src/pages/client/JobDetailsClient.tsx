@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Layout from "@/components/layout/Layout";
 import { 
@@ -31,6 +31,9 @@ import { handleLogout } from "@/lib/authUtils";
 import { getJob, updateJobStatus, deleteJob, extendJobExpiration, JobData, updateProposalStatus, ProposalData } from "@/lib/jobManagement";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { db, auth } from "@/lib/firebaseClient";
+import { createNotification } from "@/lib/notifications";
 
 const JobDetailsClient = () => {
   const { id: jobId } = useParams<{ id: string }>();
@@ -43,6 +46,8 @@ const JobDetailsClient = () => {
   const [showExtendDialog, setShowExtendDialog] = useState(false);
   const [proposals, setProposals] = useState<ProposalData[]>([]);
   const [loadingProposals, setLoadingProposals] = useState(false);
+  const [selectedProposal, setSelectedProposal] = useState<ProposalData | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     if (jobId) {
@@ -57,9 +62,32 @@ const JobDetailsClient = () => {
     try {
       const jobData = await getJob(jobId);
       if (jobData) {
+        // Fix any proposals that might be missing IDs (for backward compatibility)
+        let proposals = jobData.proposals || [];
+        let needsUpdate = false;
+        
+        proposals = proposals.map((proposal: any, index: number) => {
+          if (!proposal.id) {
+            console.log(`Fixing proposal without ID at index ${index}`);
+            needsUpdate = true;
+            return {
+              ...proposal,
+              id: `proposal_fixed_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 9)}`
+            };
+          }
+          return proposal;
+        });
+        
+        // Update the job in Firebase if we fixed any proposals
+        if (needsUpdate) {
+          const jobRef = doc(db, "jobs", jobId);
+          await updateDoc(jobRef, { proposals });
+          jobData.proposals = proposals;
+        }
+        
         setJob(jobData);
         // Load proposals from the job data since they're embedded
-        setProposals(jobData.proposals || []);
+        setProposals(proposals);
       } else {
         toast({
           title: "Job not found",
@@ -85,7 +113,21 @@ const JobDetailsClient = () => {
     try {
       // Since proposals are now embedded in the job, we get them from the job data
       if (job) {
-        setProposals(job.proposals || []);
+        let proposals = job.proposals || [];
+        
+        // Fix any proposals that might be missing IDs (for backward compatibility)
+        proposals = proposals.map((proposal: any, index: number) => {
+          if (!proposal.id) {
+            console.log(`Fixing proposal without ID at index ${index}`);
+            return {
+              ...proposal,
+              id: `proposal_fixed_${Date.now()}_${index}_${Math.random().toString(36).substr(2, 9)}`
+            };
+          }
+          return proposal;
+        });
+        
+        setProposals(proposals);
       }
     } catch (error) {
       console.error("Error loading proposals:", error);
@@ -176,10 +218,84 @@ const JobDetailsClient = () => {
     setUpdating(true);
     try {
       const status = action === 'accept' ? 'accepted' : 'rejected';
-      await updateProposalStatus(jobId, proposalId, status);
+      console.log(`Processing ${action} for proposal ${proposalId}`);
       
-      // Reload job to get updated proposals and status
+      // Find the proposal and update its status and history
+      const jobRef = doc(db, "jobs", jobId);
+      const jobSnap = await getDoc(jobRef);
+      let proposals = [];
+      if (jobSnap.exists() && Array.isArray(jobSnap.data().proposals)) {
+        proposals = jobSnap.data().proposals;
+      }
+      
+      console.log(`Found ${proposals.length} proposals, looking for ID: ${proposalId}`);
+      console.log('Proposal IDs:', proposals.map(p => p.id));
+      
+      const proposalFound = proposals.find(p => p.id === proposalId);
+      if (!proposalFound) {
+        console.error(`Proposal with ID ${proposalId} not found!`);
+        toast({
+          title: "Error",
+          description: `Proposal not found. This might be due to a missing ID.`,
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      proposals = proposals.map((p: any) => {
+        if (p.id === proposalId) {
+          console.log(`Updating proposal ${p.id} from ${p.status} to ${status}`);
+          return {
+            ...p,
+            status,
+            history: Array.isArray(p.history) ? [...p.history, { status, at: new Date().toISOString() }] : [{ status, at: new Date().toISOString() }]
+          };
+        }
+        return p;
+      });
+      
+      await updateDoc(jobRef, { proposals });
       await loadJob();
+      
+      // Create notification for freelancer
+      const currentUser = auth.currentUser;
+      if (currentUser && proposalFound) {
+        try {
+          // Get client and freelancer data for notification
+          const clientDoc = await getDoc(doc(db, "users", currentUser.uid));
+          const freelancerDoc = await getDoc(doc(db, "users", proposalFound.freelancerId));
+          
+          const clientData = clientDoc.exists() ? clientDoc.data() : { firstName: "Client", lastName: "" };
+          const freelancerData = freelancerDoc.exists() ? freelancerDoc.data() : { firstName: "Freelancer", lastName: "" };
+
+          console.log("Creating proposal action notification:", {
+            action,
+            senderUuid: currentUser.uid,
+            receiverUuid: proposalFound.freelancerId,
+            senderName: `${clientData.firstName} ${clientData.lastName}`,
+            receiverName: `${freelancerData.firstName} ${freelancerData.lastName}`,
+            message: action === 'accept' 
+              ? `Your proposal for "${job?.title}" was accepted!` 
+              : `Your proposal for "${job?.title}" was not selected.`
+          });
+
+          await createNotification({
+            senderUuid: currentUser.uid,
+            receiverUuid: proposalFound.freelancerId,
+            senderName: `${clientData.firstName} ${clientData.lastName}`,
+            receiverName: `${freelancerData.firstName} ${freelancerData.lastName}`,
+            type: action === 'accept' ? "proposal_accepted" : "proposal_rejected",
+            message: action === 'accept' 
+              ? `Your proposal for "${job?.title}" was accepted!` 
+              : `Your proposal for "${job?.title}" was not selected.`,
+            link: action === 'accept' ? `/freelancer/job/${jobId}` : "/freelancer-dashboard",
+          });
+          
+          console.log("Proposal action notification created successfully");
+        } catch (error) {
+          console.error("Error creating notification:", error);
+        }
+      }
       
       toast({
         title: `Proposal ${action}ed`,
@@ -331,11 +447,6 @@ const JobDetailsClient = () => {
               </Badge>
               
               <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Job Actions</DialogTitle>
@@ -478,6 +589,109 @@ const JobDetailsClient = () => {
           </TabsContent>
 
           <TabsContent value="proposals" className="space-y-6">
+            <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+              <DialogContent className="max-h-[90vh] overflow-y-auto p-0 sm:p-0">
+                {selectedProposal && (
+                  <div className="flex flex-col max-h-[80vh] w-full">
+                    <DialogHeader className="p-6 border-b">
+                      <DialogTitle className="text-2xl font-bold mb-1">Proposal Details</DialogTitle>
+                      <DialogDescription className="text-base text-gray-500">
+                        Full details for proposal from <span className="font-semibold text-orange-600">{selectedProposal.freelancerName}</span>
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <div className="mb-2 text-sm text-gray-500">Status</div>
+                          <Badge className={`text-base px-3 py-1 rounded-full ${selectedProposal.status === 'accepted' ? 'bg-green-100 text-green-800' : selectedProposal.status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>{selectedProposal.status}</Badge>
+                        </div>
+                        <div>
+                          <div className="mb-2 text-sm text-gray-500">Proposal Amount</div>
+                          <span className="font-medium text-orange-600 text-lg">{selectedProposal.budget ? `${selectedProposal.budget} BTC` : 'N/A'}</span>
+                        </div>
+                        <div>
+                          <div className="mb-2 text-sm text-gray-500">Submitted</div>
+                          <span className="font-medium text-gray-900">{selectedProposal.createdAt && selectedProposal.createdAt.toDate ? selectedProposal.createdAt.toDate().toLocaleString() : '-'}</span>
+                        </div>
+                        {selectedProposal.freelancerLocation && (
+                          <div>
+                            <div className="mb-2 text-sm text-gray-500">Location</div>
+                            <span className="font-medium text-gray-900">{selectedProposal.freelancerLocation}</span>
+                          </div>
+                        )}
+                        {selectedProposal.freelancerRating && (
+                          <div>
+                            <div className="mb-2 text-sm text-gray-500">Rating</div>
+                            <span className="font-medium text-yellow-600 flex items-center"><Star className="h-4 w-4 mr-1" />{selectedProposal.freelancerRating}</span>
+                          </div>
+                        )}
+                      </div>
+                      <hr className="my-4 border-gray-200" />
+                      <div>
+                        <div className="mb-2 text-sm text-gray-500">Cover Letter</div>
+                        <div className="whitespace-pre-line bg-gray-50 rounded p-4 border text-gray-800 text-base shadow-sm max-h-60 overflow-y-auto">
+                          {selectedProposal.message}
+                        </div>
+                      </div>
+                      {selectedProposal.portfolio && selectedProposal.portfolio.length > 0 && (
+                        <div>
+                          <div className="mb-2 text-sm text-gray-500">Portfolio Links</div>
+                          <ul className="list-disc ml-6 mt-1">
+                            {selectedProposal.portfolio.map((link: string, idx: number) => (
+                              <li key={idx}><a href={link} target="_blank" rel="noopener noreferrer" className="underline text-blue-600">{link}</a></li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {selectedProposal.file && (
+                        <div>
+                          <div className="mb-2 text-sm text-gray-500">Attachment</div>
+                          <a href={selectedProposal.file.data} download={selectedProposal.file.name} className="underline text-blue-600">{selectedProposal.file.name}</a>
+                        </div>
+                      )}
+                      {selectedProposal.history && Array.isArray(selectedProposal.history) && selectedProposal.history.length > 0 && (
+                        <div>
+                          <div className="mb-2 text-sm text-gray-500">Status History</div>
+                          <ul className="list-disc ml-6 mt-1 text-xs text-gray-700">
+                            {selectedProposal.history.map((h, idx) => (
+                              <li key={idx}>{h.status} at {new Date(h.at).toLocaleString()}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {/* {Array.isArray(selectedProposal.skills) && selectedProposal.skills.length > 0 && (
+                        <div>
+                          <div className="mb-2 text-sm text-gray-500">Skills</div>
+                          <div className="flex flex-wrap gap-2">
+                            {selectedProposal.skills.map((skill: string, idx: number) => (
+                              <Badge key={idx} variant="secondary" className="text-xs px-2 py-1">{skill}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )} */}
+                    </div>
+                    <div className="flex flex-wrap justify-end gap-2 p-4 border-t bg-gray-50">
+                      {selectedProposal.status === 'pending' && (
+                        <>
+                          <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => { handleProposalAction(selectedProposal.id!, 'accept'); setModalOpen(false); }}>
+                            <CheckCircle className="h-4 w-4 mr-1" /> Accept
+                          </Button>
+                          <Button size="sm" variant="destructive" onClick={() => { handleProposalAction(selectedProposal.id!, 'reject'); setModalOpen(false); }}>
+                            <AlertCircle className="h-4 w-4 mr-1" /> Reject
+                          </Button>
+                        </>
+                      )}
+                      <Button size="sm" variant="outline" onClick={() => navigate(`/freelancer/public-profile/${selectedProposal.freelancerId}`)}>
+                        <ExternalLink className="h-4 w-4 mr-1" /> View Profile
+                      </Button>
+                      <DialogClose asChild>
+                        <Button size="sm" variant="ghost">Close</Button>
+                      </DialogClose>
+                    </div>
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
             {loadingProposals ? (
               <Card>
                 <CardContent className="text-center py-8">
@@ -496,7 +710,7 @@ const JobDetailsClient = () => {
             ) : (
               <div className="space-y-4">
                 {proposals.map((proposal) => (
-                  <Card key={proposal.id} className="hover:shadow-md transition-shadow">
+                  <Card key={proposal.id} className="hover:shadow-md transition-shadow cursor-pointer max-h-56 overflow-hidden" onClick={() => { setSelectedProposal(proposal); setModalOpen(true); }}>
                     <CardHeader>
                       <div className="flex justify-between items-start">
                         <div className="flex items-center space-x-4">
@@ -519,16 +733,14 @@ const JobDetailsClient = () => {
                                 <span className="flex items-center gap-1">
                                   <MapPin className="h-4 w-4" />
                                   {proposal.freelancerLocation}
-            </span>
+                                </span>
                               )}
                             </div>
                           </div>
                         </div>
                         <div className="text-right">
                           <div className="text-lg font-semibold text-orange-600">
-                            {proposal.budget
-                              ? `Freelancer's  ${proposal.budget} BTC`
-                              : 'N/A'}
+                            {proposal.budget ? `Freelancer's  ${proposal.budget} BTC` : 'N/A'}
                           </div>
                           <div className="text-sm text-gray-500">
                             {proposal.createdAt && proposal.createdAt.toDate
@@ -546,14 +758,14 @@ const JobDetailsClient = () => {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-gray-700 mb-4">{proposal.message}</p>
+                      <p className="text-gray-700 mb-4 truncate" style={{ maxHeight: '3.5em', overflow: 'hidden' }}>{proposal.message}</p>
                       <div className="flex gap-2">
                         {proposal.status === 'pending' && (
                           <>
                             <Button 
                               size="sm" 
                               className="flex-1 bg-green-600 hover:bg-green-700"
-                              onClick={() => handleProposalAction(proposal.id!, 'accept')}
+                              onClick={e => { e.stopPropagation(); handleProposalAction(proposal.id!, 'accept'); }}
                               disabled={updating}
                             >
                               <CheckCircle className="h-4 w-4 mr-2" />
@@ -563,7 +775,7 @@ const JobDetailsClient = () => {
                               size="sm" 
                               variant="destructive" 
                               className="flex-1"
-                              onClick={() => handleProposalAction(proposal.id!, 'reject')}
+                              onClick={e => { e.stopPropagation(); handleProposalAction(proposal.id!, 'reject'); }}
                               disabled={updating}
                             >
                               <AlertCircle className="h-4 w-4 mr-2" />
@@ -571,20 +783,16 @@ const JobDetailsClient = () => {
                             </Button>
                           </>
                         )}
-                        <Button size="sm" variant="outline" className="flex-1">
-                          <MessageSquare className="h-4 w-4 mr-2" />
-                          Message
-                        </Button>
-                        <Button size="sm" variant="outline" className="flex-1" onClick={() => navigate(`/freelancer/public-profile/${proposal.freelancerId}`)}>
+                        <Button size="sm" variant="outline" className="flex-1" onClick={e => { e.stopPropagation(); navigate(`/freelancer/public-profile/${proposal.freelancerId}`); }}>
                           <ExternalLink className="h-4 w-4 mr-2" />
                           View Profile
                         </Button>
                       </div>
                     </CardContent>
                   </Card>
-          ))}
-        </div>
-      )}
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">
@@ -648,7 +856,7 @@ const JobDetailsClient = () => {
                 Are you sure you want to delete this job? This action cannot be undone and will also delete all associated proposals.
               </DialogDescription>
             </DialogHeader>
-            <DialogFooter>
+            <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
                 Cancel
               </Button>
@@ -659,7 +867,7 @@ const JobDetailsClient = () => {
               >
                 {updating ? "Deleting..." : "Delete Job"}
               </Button>
-            </DialogFooter>
+            </div>
           </DialogContent>
         </Dialog>
 
@@ -672,7 +880,7 @@ const JobDetailsClient = () => {
                 Extend the job expiration by 30 days to give more time for freelancers to apply.
               </DialogDescription>
             </DialogHeader>
-            <DialogFooter>
+            <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setShowExtendDialog(false)}>
                 Cancel
               </Button>
@@ -682,7 +890,7 @@ const JobDetailsClient = () => {
               >
                 {updating ? "Extending..." : "Extend Job"}
               </Button>
-            </DialogFooter>
+            </div>
           </DialogContent>
         </Dialog>
       </div>

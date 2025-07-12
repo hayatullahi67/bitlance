@@ -13,6 +13,8 @@ import { db } from "./firebaseClient";
 export interface FreelancerData {
   uid: string;
   name: string;
+  firstName?: string;
+  lastName?: string;
   title: string;
   location: string;
   overview: string;

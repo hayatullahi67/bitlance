@@ -34,8 +34,10 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { auth, db } from "@/lib/firebaseClient";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, collection, query, where, getDocs, orderBy } from "firebase/firestore";
+import { onSnapshot, collection } from "firebase/firestore";
+import { doc, getDoc, query, where, getDocs, orderBy } from "firebase/firestore";
 import { handleLogout } from "@/lib/authUtils";
+import { sendFirstMessage, createOrGetConversation } from "@/lib/conversation";
 
 const ClientDashboard = () => {
   const navigate = useNavigate();
@@ -47,20 +49,28 @@ const ClientDashboard = () => {
   const [error, setError] = useState(null);
   const { toast } = useToast();
   const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
+  const [activeProjects, setActiveProjects] = useState<any[]>([]);
+  const [loadingActiveProjects, setLoadingActiveProjects] = useState(true);
 
   useEffect(() => {
     // Fetch user name and jobs from Firebase
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (user) {
         try {
-          // Set user name
-          setUserName("Client");
+          // Fetch user's full name from users collection
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            setUserName(`${userData.firstName} ${userData.lastName}`);
+          } else {
+            setUserName("Client");
+          }
           
           // Load jobs for this client
           await loadClientJobs(user.uid);
         } catch (error) {
           console.error("Error fetching user data:", error);
-          setUserName("User");
+          setUserName("Client");
           setError("Failed to load user data. Please try again.");
         }
       } else {
@@ -69,7 +79,64 @@ const ClientDashboard = () => {
       }
     });
 
-    return () => unsubscribe();
+    // Real-time listener for active projects
+    let unsubscribeJobs: any;
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      setLoadingActiveProjects(true);
+      unsubscribeJobs = onSnapshot(collection(db, "jobs"), async (snapshot) => {
+        const myActiveProjects: any[] = [];
+        
+        // Process each job
+        for (const docSnap of snapshot.docs) {
+          const job = docSnap.data();
+          if (job.clientId === currentUser.uid && Array.isArray(job.proposals)) {
+            // Check if any proposal is accepted
+            const acceptedProposal = job.proposals.find((proposal: any) => proposal.status === "accepted");
+            if (acceptedProposal) {
+              // Fetch freelancer's full name from users collection
+              let freelancerName = acceptedProposal.freelancerName;
+              let freelancerAvatar = acceptedProposal.freelancerAvatar;
+              
+              try {
+                const freelancerDoc = await getDoc(doc(db, "users", acceptedProposal.freelancerId));
+                if (freelancerDoc.exists()) {
+                  const freelancerData = freelancerDoc.data();
+                  freelancerName = `${freelancerData.firstName} ${freelancerData.lastName}`;
+                  freelancerAvatar = freelancerData.avatar || freelancerAvatar;
+                }
+              } catch (error) {
+                console.error("Error fetching freelancer data:", error);
+              }
+              
+              myActiveProjects.push({
+                ...job,
+                id: docSnap.id,
+                acceptedProposal,
+                freelancer: {
+                  name: freelancerName,
+                  avatar: freelancerAvatar,
+                  rating: acceptedProposal.freelancerRating,
+                  location: acceptedProposal.freelancerLocation,
+                  id: acceptedProposal.freelancerId
+                }
+              });
+            }
+          }
+        }
+        
+        setActiveProjects(myActiveProjects);
+        setLoadingActiveProjects(false);
+      }, (error) => {
+        console.error("Error listening to jobs:", error);
+        setLoadingActiveProjects(false);
+      });
+    }
+
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeJobs) unsubscribeJobs();
+    };
   }, []);
 
   const loadClientJobs = async (clientId: string) => {
@@ -138,59 +205,7 @@ const ClientDashboard = () => {
     }
   };
 
-  const activeJobs = [
-    {
-      id: 1,
-      title: "E-commerce Website Development",
-      freelancer: {
-        name: "Sarah Johnson",
-        avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face",
-        rating: 4.9,
-        location: "San Francisco, CA"
-      },
-      budget: "0.05 BTC",
-      status: "In Progress",
-      deadline: "Dec 15, 2024",
-      progress: 60,
-      timeSpent: "24h 30m",
-      lastActivity: "2 hours ago",
-      type: "Fixed Price"
-    },
-    {
-      id: 2,
-      title: "Logo Design for Startup",
-      freelancer: {
-        name: "Mike Chen",
-        avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
-        rating: 5.0,
-        location: "New York, NY"
-      },
-      budget: "0.01 BTC",
-      status: "Under Review",
-      deadline: "Dec 8, 2024",
-      progress: 90,
-      timeSpent: "8h 15m",
-      lastActivity: "5 hours ago",
-      type: "Fixed Price"
-    },
-    {
-      id: 3,
-      title: "Mobile App Development",
-      freelancer: {
-        name: "Emily Rodriguez",
-        avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
-        rating: 4.8,
-        location: "Austin, TX"
-      },
-      budget: "0.08 BTC",
-      status: "In Progress",
-      deadline: "Dec 20, 2024",
-      progress: 35,
-      timeSpent: "45h 20m",
-      lastActivity: "1 day ago",
-      type: "Hourly"
-    }
-  ];
+  const activeJobs = activeProjects; // Use real-time data instead of hardcoded array
 
   const recentProposals = [
     {
@@ -241,6 +256,57 @@ const ClientDashboard = () => {
     }
   };
 
+  const handleMessageFreelancer = async (job: any) => {
+    if (!auth.currentUser) {
+      alert("Please log in first");
+      return;
+    }
+
+    try {
+      // Get client info (current user)
+      const clientUuid = auth.currentUser.uid;
+      
+      // Fetch client data from users collection
+      let clientName = "Client";
+      let clientAvatar = "";
+      try {
+        const clientDoc = await getDoc(doc(db, "users", clientUuid));
+        if (clientDoc.exists()) {
+          const clientData = clientDoc.data();
+          clientName = `${clientData.firstName} ${clientData.lastName}`;
+          clientAvatar = clientData.avatar || "";
+        }
+      } catch (error) {
+        console.error("Error fetching client data:", error);
+      }
+      
+      // Get freelancer info from the job
+      const freelancerUuid = job.freelancer?.id || job.acceptedProposal?.freelancerId;
+      const freelancerName = job.freelancer?.name || "Freelancer";
+      const freelancerAvatar = job.freelancer?.avatar || "";
+      
+      if (!freelancerUuid) {
+        throw new Error("Freelancer ID not found");
+      }
+
+      // Create or get existing conversation for this job
+      const conversationId = await createOrGetConversation(
+        job.id,
+        clientUuid,
+        clientName,
+        clientAvatar,
+        freelancerUuid,
+        freelancerName,
+        freelancerAvatar
+      );
+
+      // Navigate to messages page with the conversation
+      navigate(`/messages?conversation=${conversationId}`);
+    } catch (error) {
+      console.error("Error creating conversation:", error);
+      alert("Failed to open chat. Please try again.");
+    }
+  };
 
 
   return (
@@ -278,11 +344,11 @@ const ClientDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {loadingJobs ? "—" : jobsPosted.filter((job: any) => job.status === "in_progress").length}
+                {loadingActiveProjects ? "—" : activeProjects.length}
               </div>
               <p className="text-xs text-muted-foreground flex items-center">
                 <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
-                {loadingJobs ? "Loading..." : "Active projects"}
+                {loadingActiveProjects ? "Loading..." : "Active projects"}
               </p>
             </CardContent>
           </Card>
@@ -540,79 +606,89 @@ const ClientDashboard = () => {
 
             {/* Projects List */}
             <div className="space-y-4">
-              {activeJobs.map((job) => (
-                <Card key={job.id} className="hover:shadow-md transition-shadow">
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-3">
-                          <CardTitle className="text-xl">{job.title}</CardTitle>
-                          <Badge variant="outline">{job.type}</Badge>
-                        </div>
-                        <div className="flex items-center space-x-4 mb-3">
-                          <div className="flex items-center space-x-2">
-                            <Avatar className="h-8 w-8">
-                              <AvatarImage src={job.freelancer.avatar} />
-                              <AvatarFallback>{job.freelancer.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-medium">{job.freelancer.name}</p>
-                              <p className="text-sm text-gray-500">{job.freelancer.location}</p>
+              {loadingActiveProjects ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading active projects...</p>
+                </div>
+              ) : activeJobs.length === 0 ? (
+                <div className="text-center py-8">
+                  <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No active projects</h3>
+                  <p className="text-gray-600">When you accept proposals, they'll appear here as active projects.</p>
+                </div>
+              ) : (
+                activeJobs.map((job) => (
+                  <Card key={job.id} className="hover:shadow-md transition-shadow">
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-3">
+                            <CardTitle className="text-xl">{job.title}</CardTitle>
+                            <Badge variant="outline">{job.budget?.type === "fixed" ? "Fixed Price" : "Hourly"}</Badge>
+                          </div>
+                          <div className="flex items-center space-x-4 mb-3">
+                            <div className="flex items-center space-x-2">
+                              <Avatar className="h-8 w-8">
+                                <AvatarImage src={job.freelancer?.avatar} />
+                                <AvatarFallback>{job.freelancer?.name?.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium">{job.freelancer?.name}</p>
+                                <p className="text-sm text-gray-500">{job.freelancer?.location}</p>
+                              </div>
                             </div>
-                          </div>
-                          <div className="flex items-center">
-                            <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                            <span className="ml-1">{job.freelancer.rating}</span>
+                            {job.freelancer?.rating && (
+                              <div className="flex items-center">
+                                <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                                <span className="ml-1">{job.freelancer.rating}</span>
+                              </div>
+                            )}
                           </div>
                         </div>
+                        <div className="text-right">
+                          <div className="text-lg font-semibold text-orange-600 mb-2">
+                            {job.budget?.type === "fixed" ? `${job.budget.min}-${job.budget.max} BTC` : `${job.budget?.hourly} BTC/hour`}
+                          </div>
+                          <Badge className="bg-blue-100 text-blue-800">
+                            <CheckCircle className="h-4 w-4 mr-1" />
+                            <span>In Progress</span>
+                          </Badge>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-lg font-semibold text-orange-600 mb-2">{job.budget}</div>
-                        <Badge className={getStatusColor(job.status)}>
-                          {getStatusIcon(job.status)}
-                          <span className="ml-1">{job.status}</span>
-                        </Badge>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div>
+                          <p className="text-sm text-gray-600">Duration</p>
+                          <p className="font-medium">{job.duration}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-600">Category</p>
+                          <p className="font-medium">{job.category}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-600">Experience</p>
+                          <p className="font-medium">{job.experience}</p>
+                        </div>
                       </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                      <div>
-                        <p className="text-sm text-gray-600">Deadline</p>
-                        <p className="font-medium">{job.deadline}</p>
+                      <div className="flex space-x-2 mt-4">
+                        <Button size="sm" onClick={() => navigate(`/client/job/${job.id}`)}>
+                          <FileText className="h-4 w-4 mr-2" />
+                          View Details
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => handleMessageFreelancer(job)}>
+                          <MessageSquare className="h-4 w-4 mr-2" />
+                          Message
+                        </Button>
+                        <Button size="sm" variant="outline">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
                       </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Time Spent</p>
-                        <p className="font-medium">{job.timeSpent}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Last Activity</p>
-                        <p className="font-medium">{job.lastActivity}</p>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Progress</span>
-                        <span className="font-medium">{job.progress}%</span>
-                      </div>
-                      <Progress value={job.progress} className="h-2" />
-                    </div>
-                    <div className="flex space-x-2 mt-4">
-                      <Button size="sm">
-                        <MessageSquare className="h-4 w-4 mr-2" />
-                        Message
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <FileText className="h-4 w-4 mr-2" />
-                        View Details
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
           </TabsContent>
 
