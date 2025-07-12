@@ -20,10 +20,10 @@ const Header = () => {
           </div>
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#" className="text-gray-600 hover:text-orange-600 transition-colors">Browse Jobs</a>
-            <a href="#" className="text-gray-600 hover:text-orange-600 transition-colors">Find Talent</a>
-            <a href="#" className="text-gray-600 hover:text-orange-600 transition-colors">How it Works</a>
-            <a href="#" className="text-gray-600 hover:text-orange-600 transition-colors">About</a>
+            <button onClick={() => navigate('/jobs')} className="text-gray-600 hover:text-orange-600 transition-colors bg-transparent border-none cursor-pointer">Browse Jobs</button>
+            <button onClick={() => navigate('/find-talent')} className="text-gray-600 hover:text-orange-600 transition-colors bg-transparent border-none cursor-pointer">Find Talent</button>
+            <button onClick={() => navigate('/how-it-works')} className="text-gray-600 hover:text-orange-600 transition-colors bg-transparent border-none cursor-pointer">How it Works</button>
+            <button onClick={() => navigate('/about')} className="text-gray-600 hover:text-orange-600 transition-colors bg-transparent border-none cursor-pointer">About</button>
           </nav>
           {/* Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
@@ -46,10 +46,10 @@ const Header = () => {
         {isMenuOpen && (
           <div className="md:hidden mt-4 pb-4 border-t border-orange-100">
             <nav className="flex flex-col space-y-4 mt-4">
-              <a href="#" className="text-gray-600 hover:text-orange-600 transition-colors">Browse Jobs</a>
-              <a href="#" className="text-gray-600 hover:text-orange-600 transition-colors">Find Talent</a>
-              <a href="#" className="text-gray-600 hover:text-orange-600 transition-colors">How it Works</a>
-              <a href="#" className="text-gray-600 hover:text-orange-600 transition-colors">About</a>
+              <button onClick={() => { setIsMenuOpen(false); navigate('/jobs'); }} className="text-gray-600 hover:text-orange-600 transition-colors bg-transparent border-none cursor-pointer text-left">Browse Jobs</button>
+              <button onClick={() => { setIsMenuOpen(false); navigate('/find-talent'); }} className="text-gray-600 hover:text-orange-600 transition-colors bg-transparent border-none cursor-pointer text-left">Find Talent</button>
+              <button onClick={() => { setIsMenuOpen(false); navigate('/how-it-works'); }} className="text-gray-600 hover:text-orange-600 transition-colors bg-transparent border-none cursor-pointer text-left">How it Works</button>
+              <button onClick={() => { setIsMenuOpen(false); navigate('/about'); }} className="text-gray-600 hover:text-orange-600 transition-colors bg-transparent border-none cursor-pointer text-left">About</button>
               <div className="flex flex-col space-y-2 pt-4">
                 <Button variant="ghost" className="justify-start text-gray-600 hover:text-orange-600" onClick={() => { setIsMenuOpen(false); navigate('/login'); }}>
                   Sign In
@@ -550,6 +550,7 @@ const Testimonials = () => {
 };
 
 const Footer = () => {
+  const navigate = useNavigate();
   return (
     <footer className="bg-gray-900 text-white py-16 px-4">
       <div className="container mx-auto max-w-6xl">
@@ -581,11 +582,11 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold text-lg mb-6">Platform</h4>
             <ul className="space-y-3">
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Browse Jobs</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Find Talent</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Post a Job</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">How it Works</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Pricing</a></li>
+              <li><button onClick={() => navigate('/jobs')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left">Browse Jobs</button></li>
+              <li><button onClick={() => navigate('/find-talent')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left">Find Talent</button></li>
+              <li><button onClick={() => navigate('/post-job')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left">Post a Job</button></li>
+              <li><button onClick={() => navigate('/how-it-works')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left">How it Works</button></li>
+              <li><button onClick={() => navigate('/pricing')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left">Pricing</button></li>
             </ul>
           </div>
           {/* Resources */}
@@ -603,11 +604,11 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold text-lg mb-6">Company</h4>
             <ul className="space-y-3">
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">About</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Careers</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Privacy</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Terms</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Contact</a></li>
+              <li><button onClick={() => navigate('/about')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left">About</button></li>
+              <li><button onClick={() => navigate('/careers')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left">Careers</button></li>
+              <li><button onClick={() => navigate('/privacy')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left">Privacy</button></li>
+              <li><button onClick={() => navigate('/terms')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left">Terms</button></li>
+              <li><button onClick={() => navigate('/contact')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left">Contact</button></li>
             </ul>
           </div>
         </div>

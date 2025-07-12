@@ -19,10 +19,10 @@ const LandingHeader = () => {
           </div>
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#" className="text-gray-600 hover:text-orange-600 transition-colors">Browse Jobs</a>
-            <a href="#" className="text-gray-600 hover:text-orange-600 transition-colors">Find Talent</a>
-            <a href="#" className="text-gray-600 hover:text-orange-600 transition-colors">How it Works</a>
-            <a href="#" className="text-gray-600 hover:text-orange-600 transition-colors">About</a>
+            <button onClick={() => navigate('/jobs')} className="text-gray-600 hover:text-orange-600 transition-colors bg-transparent border-none cursor-pointer">Browse Jobs</button>
+            <button onClick={() => navigate('/find-talent')} className="text-gray-600 hover:text-orange-600 transition-colors bg-transparent border-none cursor-pointer">Find Talent</button>
+            <button onClick={() => navigate('/how-it-works')} className="text-gray-600 hover:text-orange-600 transition-colors bg-transparent border-none cursor-pointer">How it Works</button>
+            <button onClick={() => navigate('/about')} className="text-gray-600 hover:text-orange-600 transition-colors bg-transparent border-none cursor-pointer">About</button>
           </nav>
           {/* Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
@@ -45,10 +45,10 @@ const LandingHeader = () => {
         {isMenuOpen && (
           <div className="md:hidden mt-4 pb-4 border-t border-orange-100">
             <nav className="flex flex-col space-y-4 mt-4">
-              <a href="#" className="text-gray-600 hover:text-orange-600 transition-colors">Browse Jobs</a>
-              <a href="#" className="text-gray-600 hover:text-orange-600 transition-colors">Find Talent</a>
-              <a href="#" className="text-gray-600 hover:text-orange-600 transition-colors">How it Works</a>
-              <a href="#" className="text-gray-600 hover:text-orange-600 transition-colors">About</a>
+              <button onClick={() => { setIsMenuOpen(false); navigate('/jobs'); }} className="text-gray-600 hover:text-orange-600 transition-colors bg-transparent border-none cursor-pointer text-left">Browse Jobs</button>
+              <button onClick={() => { setIsMenuOpen(false); navigate('/find-talent'); }} className="text-gray-600 hover:text-orange-600 transition-colors bg-transparent border-none cursor-pointer text-left">Find Talent</button>
+              <button onClick={() => { setIsMenuOpen(false); navigate('/how-it-works'); }} className="text-gray-600 hover:text-orange-600 transition-colors bg-transparent border-none cursor-pointer text-left">How it Works</button>
+              <button onClick={() => { setIsMenuOpen(false); navigate('/about'); }} className="text-gray-600 hover:text-orange-600 transition-colors bg-transparent border-none cursor-pointer text-left">About</button>
               <div className="flex flex-col space-y-2 pt-4">
                 <Button variant="ghost" className="justify-start text-gray-600 hover:text-orange-600" onClick={() => { setIsMenuOpen(false); navigate('/login'); }}>
                   Sign In

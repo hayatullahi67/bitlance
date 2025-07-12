@@ -22,6 +22,10 @@ import JobDetailsClient from "./pages/client/JobDetailsClient";
 import SubmitProposal from "./pages/freelancer/SubmitProposal";
 import Messages from "./pages/Messages";
 import TestChat from "./pages/TestChat";
+import BrowseJobsPublic from "./pages/BrowseJobs";
+import FindTalent from "./pages/FindTalent";
+import HowItWorks from "./pages/HowItWorks";
+import About from "./pages/About";
 
 const queryClient = new QueryClient();
 
@@ -95,6 +99,10 @@ const App = () => (
           <Route path="/pay" element={<PaymentPage />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/test-chat" element={<TestChat />} />
+          <Route path="/jobs" element={<BrowseJobsPublic />} />
+          <Route path="/find-talent" element={<FindTalent />} />
+          <Route path="/how-it-works" element={<HowItWorks />} />
+          <Route path="/about" element={<About />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
