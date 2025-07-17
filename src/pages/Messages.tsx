@@ -75,13 +75,25 @@ const Messages = () => {
 
     const unsubscribe = subscribeToConversations(currentUser.uuid, (convs) => {
       setConversations(convs);
-      if (convs.length > 0 && !selectedConvId) {
-        setSelectedConvId(convs[0].id!);
-      }
     });
 
     return unsubscribe;
-  }, [currentUser?.uuid, selectedConvId]);
+  }, [currentUser?.uuid]);
+
+  // Auto-select first conversation if none is selected or selectedConvId is not in the list
+  useEffect(() => {
+    if (conversations.length > 0) {
+      const found = conversations.find(c => c.id === selectedConvId);
+      if (!selectedConvId || !found) {
+        console.log('[Auto-select] Setting selectedConvId to', conversations[0].id);
+        setSelectedConvId(conversations[0].id!);
+      } else {
+        console.log('[Auto-select] selectedConvId is already set:', selectedConvId);
+      }
+    } else {
+      console.log('[Auto-select] No conversations to select.');
+    }
+  }, [conversations, selectedConvId]);
 
   // Real-time messages listener
   useEffect(() => {
@@ -387,7 +399,7 @@ const Messages = () => {
       userAvatar={userAvatar}
       title="Messages"
     >
-      <div className="flex h-[80vh] bg-white rounded-lg shadow overflow-hidden max-w-5xl mx-auto mt-8 border">
+      <div className="flex h-[80vh] bg-white rounded-lg shadow overflow-hidden max-w-5xl mx-auto mt-8 border overflow-x-hidden">
         {/* Sidebar */}
         <div className="w-72 border-r bg-gray-50 flex flex-col">
           <div className="p-4 font-bold text-lg border-b">Chats</div>

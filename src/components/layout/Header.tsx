@@ -301,7 +301,7 @@ const Header = ({
                  </Button>
                  {/* Dropdown */}
                  {notifOpen && (
-                   <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg border border-gray-200 z-50 animate-fade-in">
+                   <div className="fixed left-[15px] right-0 top-16 w-[80%] max-w-full sm:absolute sm:right-0 sm:left-auto sm:top-auto sm:mt-2 sm:w-80 sm:max-w-xs bg-white rounded-md shadow-lg border border-gray-200 z-50 animate-fade-in px-2">
                      <div className="p-4 border-b font-semibold text-gray-800 flex items-center justify-between">
                        Notifications
                        {unreadCount > 0 && (

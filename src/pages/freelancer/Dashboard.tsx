@@ -377,7 +377,7 @@ const FreelancerDashboard = () => {
       userType="freelancer"
       userName={userName || "..."}
       userAvatar="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face"
-      onFindWork={() => navigate("/marketplace")}
+      onFindWork={() => navigate("/browse-jobs")}
       onLogout={handleLogout}
     >
       <div className="container mx-auto px-4 py-8">
@@ -385,12 +385,12 @@ const FreelancerDashboard = () => {
         <div className="mb-8">
           <div className="flex justify-between items-start">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome back, {userName || "..."}!</h2>
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Welcome back, {userName || "..."}!</h2>
               <p className="text-gray-600">Track your projects and find new opportunities.</p>
             </div>
             <Button
               className="bg-orange-500 hover:bg-orange-600 text-white"
-              onClick={() => navigate("/marketplace")}
+              onClick={() => navigate("/browse-jobs")}
             >
               <Search className="mr-2 h-4 w-4" />
               Find Work
@@ -453,11 +453,11 @@ const FreelancerDashboard = () => {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 max-w-2xl mb-8">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="projects">My Projects</TabsTrigger>
-            <TabsTrigger value="opportunities">Opportunities</TabsTrigger>
-            <TabsTrigger value="earnings">Earnings</TabsTrigger>
+          <TabsList className="flex w-full max-w-2xl mb-8 overflow-x-auto flex-nowrap whitespace-nowrap pl-[120px] gap-2   sm:grid sm:grid-cols-4">
+            <TabsTrigger value="overview" className="min-w-[110px] text-sm  px-2 py-1">Overview</TabsTrigger>
+            <TabsTrigger value="projects" className="min-w-[110px] text-sm px-2 py-1">My Projects</TabsTrigger>
+            <TabsTrigger value="opportunities" className="min-w-[110px] text-sm px-2 py-1">Opportunities</TabsTrigger>
+            <TabsTrigger value="earnings" className="min-w-[110px] text-sm px-2 py-1">Earnings</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-8">
@@ -688,9 +688,9 @@ const FreelancerDashboard = () => {
                         <FileText className="h-4 w-4 mr-2" />
                         View Details
                       </Button>
-                      <Button size="sm" variant="outline">
+                      {/* <Button size="sm" variant="outline">
                         <MoreHorizontal className="h-4 w-4" />
-                      </Button>
+                      </Button> */}
                     </div>
                   </CardContent>
                 </Card>
@@ -798,23 +798,23 @@ const FreelancerDashboard = () => {
                   proposals.map((proposal) => (
                     <Card key={proposal.jobId + proposal.createdAt} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => { setSelectedProposal(proposal); setModalOpen(true); }}>
                   <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <CardTitle className="text-lg">{proposal.jobTitle}</CardTitle>
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                      <div className="flex-1 w-full">
+                        <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-3 mb-2">
+                          <CardTitle className="text-lg whitespace-normal break-words">{proposal.jobTitle}</CardTitle>
                           <Badge className={getProposalStatusColor(proposal.status)}>
-                            {getProposalStatusIcon(proposal.status)}
+                            {/* {getProposalStatusIcon(proposal.status)} */}
                             <span className="ml-1">{proposal.status}</span>
                           </Badge>
                         </div>
-                        <div className="flex items-center space-x-2 text-sm text-gray-500 mb-3">
-                              <span className="font-medium">{proposal.client?.name || "Client"}</span>
+                        <div className="flex flex-wrap items-center space-x-2 text-xs text-gray-500 mb-2">
+                          <span className="font-medium whitespace-normal break-words">{proposal.client?.name || "Client"}</span>
                               {proposal.client?.rating && <><span>•</span><div className="flex items-center"><Star className="h-3 w-3 text-yellow-400 fill-current" /><span className="ml-1">{proposal.client.rating}</span></div></>}
                               {proposal.client?.location && <><span>•</span><span>{proposal.client.location}</span></>}
                               {proposal.createdAt && <><span>•</span><span>{new Date(proposal.createdAt.seconds ? proposal.createdAt.seconds * 1000 : proposal.createdAt).toLocaleDateString()}</span></>}
                         </div>
-                        <div className="mb-3">
-                          <p className="text-sm text-gray-600">
+                        <div className="mb-2">
+                          <p className="text-xs text-gray-600 whitespace-normal break-words">
                                 {proposal.message && proposal.message.length > 120 ? `${proposal.message.slice(0, 120)}...` : proposal.message}
                           </p>
                         </div>
@@ -828,34 +828,30 @@ const FreelancerDashboard = () => {
                           )}
                               </div>
                             )}
-                            <div className="flex flex-wrap gap-4 mt-2">
-                              <div className="text-xs text-gray-500"><span className="font-semibold text-gray-700">Job Type:</span> <span className="font-medium text-gray-900">{proposal.jobType}</span></div>
-                              <div className="text-xs text-gray-500"><span className="font-semibold text-gray-700">Job Budget:</span> <span className="font-medium text-gray-900">{typeof proposal.jobBudget === 'object' ? formatBudget(proposal.jobBudget) : proposal.jobBudget}</span></div>
+                        <div className="flex flex-col sm:flex-row flex-wrap gap-2 mt-2">
+                          <div className="text-xs text-gray-500"><span className="font-semibold text-gray-700">Job Type:</span> <span className="font-medium text-gray-900 whitespace-normal break-words">{proposal.jobType}</span></div>
+                          <div className="text-xs text-gray-500"><span className="font-semibold text-gray-700">Job Budget:</span> <span className="font-medium text-gray-900 whitespace-normal break-words">{typeof proposal.jobBudget === 'object' ? formatBudget(proposal.jobBudget) : proposal.jobBudget}</span></div>
                         </div>
                       </div>
-                      <div className="text-right">
-                            <div className="text-lg font-semibold text-orange-600 mb-2">{typeof proposal.jobBudget === 'object' ? formatBudget(proposal.jobBudget) : (proposal.jobBudget || proposal.proposalAmount)}</div>
+                      <div className="text-right mt-2 sm:mt-0 w-full sm:w-auto">
+                        <div className="text-lg font-semibold text-orange-600 mb-2 whitespace-normal break-words">{typeof proposal.jobBudget === 'object' ? formatBudget(proposal.jobBudget) : (proposal.jobBudget || proposal.proposalAmount)}</div>
                         <Badge variant="outline">{proposal.jobType}</Badge>
-                        <div className="text-xs text-gray-500 mt-1">Job Budget: {typeof proposal.jobBudget === 'object' ? formatBudget(proposal.jobBudget) : proposal.jobBudget}</div>
+                        <div className="text-xs text-gray-500 mt-1 whitespace-normal break-words">Job Budget: {typeof proposal.jobBudget === 'object' ? formatBudget(proposal.jobBudget) : proposal.jobBudget}</div>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center space-x-4 text-sm text-gray-500">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                      <div className="flex items-center space-x-4 text-xs text-gray-500 mb-2 sm:mb-0">
                             {proposal.createdAt && <span>Submitted {new Date(proposal.createdAt.seconds ? proposal.createdAt.seconds * 1000 : proposal.createdAt).toLocaleDateString()}</span>}
                         <span>•</span>
                         <span>Job Budget: {typeof proposal.jobBudget === 'object' ? formatBudget(proposal.jobBudget) : proposal.jobBudget}</span>
                       </div>
-                      <div className="flex space-x-2">
+                      <div className="flex space-x-2 mt-2 sm:mt-0">
                             <Button size="sm" variant="outline" onClick={e => { e.stopPropagation(); navigate(`/freelancer/job/${proposal.jobId}`); }}>
                           <Eye className="h-4 w-4" />
                               View Job
                         </Button>
-                            {/* <Button size="sm" variant="outline" onClick={e => e.stopPropagation()}>
-                          <MessageSquare className="h-4 w-4" />
-                          Message
-                            </Button> */}
                       </div>
                     </div>
                   </CardContent>

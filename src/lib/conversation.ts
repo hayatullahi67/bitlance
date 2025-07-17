@@ -112,14 +112,12 @@ export const setTypingIndicator = async (conversationId: string, userUuid: strin
 export const subscribeToConversations = (userUuid: string, callback: (conversations: Conversation[]) => void) => {
   const q1 = query(
     collection(db, "conversations"),
-    where("status", "==", "active"),
     where("clientUuid", "==", userUuid),
     orderBy("updatedAt", "desc")
   );
   
   const q2 = query(
     collection(db, "conversations"),
-    where("status", "==", "active"),
     where("freelancerUuid", "==", userUuid),
     orderBy("updatedAt", "desc")
   );
