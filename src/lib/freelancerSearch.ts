@@ -180,21 +180,20 @@ export const searchFreelancers = async (
     const searchTerm = query.toLowerCase();
     
     return allFreelancers.filter(freelancer => {
-      // Search in name
-      if (freelancer.name.toLowerCase().includes(searchTerm)) return true;
-      
+      // Search in name, firstName, or lastName
+      if (
+        (freelancer.name && freelancer.name.toLowerCase().includes(searchTerm)) ||
+        (freelancer.firstName && freelancer.firstName.toLowerCase().includes(searchTerm)) ||
+        (freelancer.lastName && freelancer.lastName.toLowerCase().includes(searchTerm))
+      ) return true;
       // Search in title
       if (freelancer.title.toLowerCase().includes(searchTerm)) return true;
-      
       // Search in skills
       if (freelancer.skills.some(skill => skill.name.toLowerCase().includes(searchTerm))) return true;
-      
       // Search in overview
       if (freelancer.overview.toLowerCase().includes(searchTerm)) return true;
-      
       // Search in location
       if (freelancer.location.toLowerCase().includes(searchTerm)) return true;
-      
       return false;
     }).slice(0, limitCount);
   } catch (error) {

@@ -197,12 +197,12 @@ const JobDetails = () => {
 
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
-      case "open": return "bg-green-100 text-green-700";
-      case "in_progress": return "bg-blue-100 text-blue-700";
-      case "completed": return "bg-purple-100 text-purple-700";
-      case "expired": return "bg-gray-100 text-gray-700";
-      case "cancelled": return "bg-red-100 text-red-700";
-      default: return "bg-gray-100 text-gray-700";
+      case "open": return "w-[fit-content] bg-green-100 text-green-700";
+      case "in_progress": return "w-[fit-content] bg-blue-100 text-blue-700";
+      case "completed": return " w-[fit-content] bg-purple-100 text-purple-700";
+      case "expired": return " w-[fit-content] bg-gray-100 text-gray-700";
+      case "cancelled": return "w-[fit-content] bg-red-100 text-red-700";
+      default: return " w-[fit-content] bg-gray-100 text-gray-700";
     }
   };
 
@@ -333,18 +333,14 @@ const JobDetails = () => {
         <div className="max-w-6xl mx-auto">
           {/* Job Header */}
           <div className="mb-8">
-            <div className="flex items-start justify-between mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
               <div className="flex-1">
-                <div className="flex items-center space-x-3 mb-2">
-                  <Badge variant="secondary" className="text-sm">
-                    {job.category}
-                  </Badge>
-                  <Badge className={getStatusBadgeColor(job.status)}>
-                    {job.status?.replace('_', ' ') || 'Unknown'}
-                  </Badge>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3 mb-2 gap-2">
+                  <Badge variant="secondary" className="text-xs sm:text-sm w-[fit-content]">{job.category}</Badge>
+                  <Badge className={getStatusBadgeColor(job.status)} >{job.status?.replace('_', ' ') || 'Unknown'}</Badge>
                 </div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">{job.title}</h1>
-                <div className="flex items-center space-x-6 text-sm text-gray-600">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 break-words">{job.title}</h1>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-6 gap-1 sm:gap-0 text-xs sm:text-sm text-gray-600">
                   <div className="flex items-center space-x-1">
                     <Clock className="h-4 w-4" />
                     <span>Posted {formatDate(job.createdAt)}</span>
@@ -363,43 +359,39 @@ const JobDetails = () => {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <Button variant="outline" size="sm" onClick={handleBookmark}>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-4 sm:mt-0">
+                {/* <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={handleBookmark}>
                   <Bookmark className={`h-4 w-4 ${isBookmarked ? 'fill-current' : ''}`} />
                 </Button>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="w-full sm:w-auto">
                   <Flag className="h-4 w-4" />
-                </Button>
+                </Button> */}
               </div>
             </div>
 
             {/* Client Info */}
             <Card>
               <CardContent className="p-4">
-                <div className="flex items-center space-x-4">
+                <div className="flex flex-col sm:flex-row items-center gap-4">
                   <Avatar className="h-12 w-12">
                     <AvatarImage src={clientInfo?.avatar || "https://ui-avatars.com/api/?name=Client"} />
                     <AvatarFallback>
                       {clientInfo?.name ? clientInfo.name.split(' ').map((n: string) => n[0]).join('') : 'C'}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex-1">
+                  <div className="flex-1 text-center sm:text-left">
                     <h3 className="font-semibold text-gray-900">{clientInfo?.name || "Client"}</h3>
-                    <div className="flex items-center space-x-4 text-sm text-gray-600">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 gap-1 sm:gap-0 text-xs sm:text-sm text-gray-600 mt-1">
                       <div className="flex items-center space-x-1">
                         <Star className="h-4 w-4 text-yellow-400 fill-current" />
                         <span>{clientInfo?.rating || 'N/A'}</span>
                       </div>
-                      <span>•</span>
+                      <span className="hidden sm:inline">•</span>
                       <span>{clientInfo?.totalSpent ? `${clientInfo.totalSpent} spent` : 'No spend data'}</span>
-                      <span>•</span>
+                      <span className="hidden sm:inline">•</span>
                       <span>{clientInfo?.location || 'Unknown location'}</span>
                     </div>
                   </div>
-                  {/* <Button variant="outline" size="sm">
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    Message
-                  </Button> */}
                 </div>
               </CardContent>
             </Card>

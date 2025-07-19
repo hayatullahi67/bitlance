@@ -31,7 +31,7 @@ import { handleLogout } from "@/lib/authUtils";
 import { getJob, updateJobStatus, deleteJob, extendJobExpiration, JobData, updateProposalStatus, ProposalData } from "@/lib/jobManagement";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, collection, getDocs } from "firebase/firestore";
 import { db, auth } from "@/lib/firebaseClient";
 import { createNotification } from "@/lib/notifications";
 
@@ -48,12 +48,34 @@ const JobDetailsClient = () => {
   const [loadingProposals, setLoadingProposals] = useState(false);
   const [selectedProposal, setSelectedProposal] = useState<ProposalData | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [freelancerProfiles, setFreelancerProfiles] = useState<Record<string, any>>({});
 
   useEffect(() => {
     if (jobId) {
       loadJob();
     }
   }, [jobId]);
+
+  useEffect(() => {
+    // Fetch freelancer profiles for all proposals
+    const fetchFreelancerProfiles = async () => {
+      if (!proposals || proposals.length === 0) return;
+      const uniqueIds = Array.from(new Set(proposals.map(p => p.freelancerId)));
+      const profiles: Record<string, any> = {};
+      await Promise.all(uniqueIds.map(async (id) => {
+        try {
+          const docSnap = await getDoc(doc(db, "freelancers", id));
+          if (docSnap.exists()) {
+            profiles[id] = docSnap.data();
+          }
+        } catch (e) {
+          // ignore
+        }
+      }));
+      setFreelancerProfiles(profiles);
+    };
+    fetchFreelancerProfiles();
+  }, [proposals]);
 
   const loadJob = async () => {
     if (!jobId) return;
@@ -408,94 +430,92 @@ const JobDetailsClient = () => {
       onPostJob={() => navigate("/post-job")}
       onLogout={handleLogout}
     >
-      <div className="w-full flex justify-center py-8">
-        <div className="w-4/5 max-w-7xl">
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="mb-6">
-          <Button 
-            variant="outline" 
-            onClick={() => navigate("/client-dashboard")}
-            className="mb-4"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
-          </Button>
-          
-          <div className="flex justify-between items-start">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{job.title}</h1>
-              <div className="flex items-center gap-4 text-gray-600">
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  Posted {formatDate(job.createdAt)}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Eye className="h-4 w-4" />
-                  {job.views} views
-                </span>
-                <span className="flex items-center gap-1">
-                  <Users className="h-4 w-4" />
-                  {proposals.length} proposals
-                </span>
+            <Button 
+              variant="outline" 
+              onClick={() => navigate("/client-dashboard")}
+              className="mb-4"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+              <div className="flex-1">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 break-words">{job.title}</h1>
+                <div className="flex flex-wrap gap-4 text-gray-600 mb-2">
+                  <span className="flex items-center gap-1">
+                    <Calendar className="h-4 w-4" />
+                    Posted {formatDate(job.createdAt)}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Eye className="h-4 w-4" />
+                    {job.views} views
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Users className="h-4 w-4" />
+                    {proposals.length} proposals
+                  </span>
+                </div>
+              </div>
+              <div className="flex flex-row items-center gap-2 mt-4 sm:mt-0">
+                <Badge className={`${getStatusColor(job.status)} flex items-center gap-1`}>
+                  {getStatusIcon(job.status)}
+                  {job.status.replace('_', ' ')}
+                </Badge>
+                <Dialog>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Job Actions</DialogTitle>
+                      <DialogDescription>
+                        Manage your job posting
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-2">
+                      {job.status === "open" && (
+                        <>
+                          <Button 
+                            variant="outline" 
+                            className="w-full justify-start"
+                            onClick={() => navigate(`/edit-job/${jobId}`)}
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit Job
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            className="w-full justify-start"
+                            onClick={() => setShowExtendDialog(true)}
+                          >
+                            <RefreshCw className="h-4 w-4 mr-2" />
+                            Extend Expiration
+                          </Button>
+                        </>
+                      )}
+                      <Button 
+                        variant="destructive" 
+                        className="w-full justify-start"
+                        onClick={() => setShowDeleteDialog(true)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete Job
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
-            
-            <div className="flex items-center gap-2">
-              <Badge className={`${getStatusColor(job.status)} flex items-center gap-1`}>
-                {getStatusIcon(job.status)}
-                {job.status.replace('_', ' ')}
-              </Badge>
-              
-              <Dialog>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Job Actions</DialogTitle>
-                    <DialogDescription>
-                      Manage your job posting
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-2">
-                    {job.status === "open" && (
-                      <>
-                        <Button 
-                          variant="outline" 
-                          className="w-full justify-start"
-                          onClick={() => navigate(`/edit-job/${jobId}`)}
-                        >
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit Job
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          className="w-full justify-start"
-                          onClick={() => setShowExtendDialog(true)}
-                        >
-                          <RefreshCw className="h-4 w-4 mr-2" />
-                          Extend Expiration
-                        </Button>
-                      </>
-                    )}
-                    <Button 
-                      variant="destructive" 
-                      className="w-full justify-start"
-                      onClick={() => setShowDeleteDialog(true)}
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete Job
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-      </div>
-      </div>
+          </div>
 
-        <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="proposals">Proposals ({proposals.length})</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
-          </TabsList>
+          {/* Main Content Responsive Grid */}
+          <Tabs defaultValue="overview" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-6">
+              <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
+              <TabsTrigger value="proposals" className="text-xs sm:text-sm">Proposals ({proposals.length})</TabsTrigger>
+              <TabsTrigger value="settings" className="text-xs sm:text-sm">Settings</TabsTrigger>
+            </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -509,7 +529,6 @@ const JobDetailsClient = () => {
                     <p className="text-gray-700 whitespace-pre-wrap">{job.description}</p>
                   </CardContent>
                 </Card>
-
                 <Card>
                   <CardHeader>
                     <CardTitle>Required Skills</CardTitle>
@@ -518,15 +537,14 @@ const JobDetailsClient = () => {
                     <div className="flex flex-wrap gap-2">
                       {job.skills.map((skill, index) => (
                         <Badge key={index} variant="secondary">
-              {skill}
+                          {skill}
                         </Badge>
                       ))}
                     </div>
                   </CardContent>
                 </Card>
               </div>
-
-              {/* Job Info Sidebar */}
+              {/* Sidebar */}
               <div className="space-y-6">
                 <Card>
                   <CardHeader>
@@ -560,30 +578,27 @@ const JobDetailsClient = () => {
                     </div>
                   </CardContent>
                 </Card>
-
-                {job.expiresAt && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Expiration</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-sm text-gray-600">
-                        <p>Expires {formatDate(job.expiresAt)}</p>
-                        {job.status === "open" && (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="mt-2 w-full"
-                            onClick={() => setShowExtendDialog(true)}
-                          >
-                            <RefreshCw className="h-4 w-4 mr-2" />
-                            Extend
-                          </Button>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Expiration</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-sm text-gray-600">
+                      <p>Expires {formatDate(job.expiresAt)}</p>
+                      {job.status === "open" && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="mt-2 w-full"
+                          onClick={() => setShowExtendDialog(true)}
+                        >
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          Extend
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
           </TabsContent>
@@ -715,13 +730,17 @@ const JobDetailsClient = () => {
                       <div className="flex justify-between items-start">
                         <div className="flex items-center space-x-4">
                           <Avatar className="h-12 w-12">
-                            <AvatarImage src={proposal.freelancerAvatar} />
+                            <AvatarImage src={freelancerProfiles[proposal.freelancerId]?.avatar || proposal.freelancerAvatar} />
                             <AvatarFallback>
-                              {proposal.freelancerName.split(' ').map(n => n[0]).join('')}
+                              {freelancerProfiles[proposal.freelancerId]?.firstName || proposal.freelancerName.split(' ').map(n => n[0]).join('')}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <CardTitle className="text-lg">{proposal.freelancerName}</CardTitle>
+                            <CardTitle className="text-lg">
+                              {freelancerProfiles[proposal.freelancerId]
+                                ? `${freelancerProfiles[proposal.freelancerId].lastName || ''} ${freelancerProfiles[proposal.freelancerId].firstName || ''}`.trim()
+                                : proposal.freelancerName}
+                            </CardTitle>
                             <div className="flex items-center gap-4 text-sm text-gray-600">
                               {proposal.freelancerRating && (
                                 <span className="flex items-center gap-1">
@@ -740,7 +759,7 @@ const JobDetailsClient = () => {
                         </div>
                         <div className="text-right">
                           <div className="text-lg font-semibold text-orange-600">
-                            {proposal.budget ? `Freelancer's  ${proposal.budget} BTC` : 'N/A'}
+                            {proposal.budget ?  `${proposal.budget} BTC` : 'N/A'}
                           </div>
                           <div className="text-sm text-gray-500">
                             {proposal.createdAt && proposal.createdAt.toDate
@@ -846,6 +865,7 @@ const JobDetailsClient = () => {
             </Card>
           </TabsContent>
         </Tabs>
+        </div>
 
         {/* Delete Confirmation Dialog */}
         <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
@@ -894,8 +914,7 @@ const JobDetailsClient = () => {
           </DialogContent>
         </Dialog>
       </div>
-    </div>
-      </Layout>
+    </Layout>
   );
 };
 

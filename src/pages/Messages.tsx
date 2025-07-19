@@ -82,16 +82,12 @@ const Messages = () => {
 
   // Auto-select first conversation if none is selected or selectedConvId is not in the list
   useEffect(() => {
-    if (conversations.length > 0) {
+    // Only auto-select on desktop/tablet, not on mobile
+    if (window.innerWidth >= 640 && conversations.length > 0) {
       const found = conversations.find(c => c.id === selectedConvId);
       if (!selectedConvId || !found) {
-        console.log('[Auto-select] Setting selectedConvId to', conversations[0].id);
         setSelectedConvId(conversations[0].id!);
-      } else {
-        console.log('[Auto-select] selectedConvId is already set:', selectedConvId);
       }
-    } else {
-      console.log('[Auto-select] No conversations to select.');
     }
   }, [conversations, selectedConvId]);
 
@@ -393,127 +389,153 @@ const Messages = () => {
   const otherUser = selectedConv ? getOtherUser(selectedConv, currentUser?.uuid || "") : null;
 
   return (
+    
     <Layout
-      userType={userType || "client"}
+      userType={userType}
       userName={userName}
       userAvatar={userAvatar}
       title="Messages"
     >
-      <div className="flex h-[80vh] bg-white rounded-lg shadow overflow-hidden max-w-5xl mx-auto mt-8 border overflow-x-hidden">
-        {/* Sidebar */}
-        <div className="w-72 border-r bg-gray-50 flex flex-col">
-          <div className="p-4 font-bold text-lg border-b">Chats</div>
-          <div className="flex-1 overflow-y-auto">
-            {conversations.map(conv => {
-              const otherUserInConv = getOtherUser(conv, currentUser?.uuid || "");
-              const unreadCount = conv.unreadCount[currentUser?.uuid || ""] || 0;
-              
-              return (
-                <div
-                  key={conv.id}
-                  className={`flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-orange-50 transition ${selectedConvId === conv.id ? "bg-orange-100" : ""}`}
-                  onClick={() => setSelectedConvId(conv.id!)}
-                >
-                  <div className="relative">
-                    <img 
-                      src={otherUserInConv.avatar} 
-                      alt={otherUserInConv.name} 
-                      className="w-10 h-10 rounded-full" 
-                    />
-                    {conv.typingUsers[otherUserInConv.uuid] && (
-                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                        <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium truncate">{otherUserInConv.name}</div>
-                    <div className="text-xs text-gray-500 truncate">
-                      {conv.typingUsers[otherUserInConv.uuid] ? "typing..." : conv.lastMessage?.text || "No messages yet"}
-                    </div>
-                  </div>
-                  {unreadCount > 0 && (
-                    <span className="ml-2 bg-green-500 text-white text-xs rounded-full px-2 py-0.5 min-w-[20px] text-center">
-                      {unreadCount}
-                    </span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Main Chat Window */}
-        <div className="flex-1 flex flex-col">
-          {selectedConv && otherUser ? (
-            <>
-              <div className="flex items-center gap-3 border-b px-6 py-4 bg-white">
-                <div className="relative">
-                  <img 
-                    src={otherUser.avatar} 
-                    alt={otherUser.name} 
-                    className="w-10 h-10 rounded-full" 
-                  />
-                  {selectedConv.typingUsers[otherUser.uuid] && (
-                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                      <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <div className="font-semibold">{otherUser.name}</div>
-                  <div className="text-xs text-gray-500">
-                    {selectedConv.typingUsers[otherUser.uuid] ? "typing..." : "Online"}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
-                {messages.map(renderMessage)}
-                <div ref={messagesEndRef} />
-              </div>
-
-              <form onSubmit={handleSend} className="p-4 border-t flex gap-2 bg-white">
-                <input
-                  type="text"
-                  className="flex-1 border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  placeholder="Type a message..."
-                  value={input}
-                  onChange={e => setInput(e.target.value)}
-                />
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  style={{ display: "none" }}
-                  onChange={handleFileChange}
-                  accept="*"
-                />
-                <button
-                  type="button"
-                  className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-semibold"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  {file ? file.name : "Attach"}
-                </button>
-                <button
-                  type="submit"
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold"
-                >
-                  Send
-                </button>
-              </form>
-              {fileError && <div className="text-red-500 text-xs px-4 pb-2">{fileError}</div>}
-            </>
-          ) : (
-            <div className="flex-1 flex items-center justify-center text-gray-500">
-              <div className="text-center">
-                <div className="text-4xl mb-4">💬</div>
-                <p>Select a conversation to start messaging</p>
+<div className="h-screen  flex items-center justify-center bg-gray-100">
+  <div className="flex flex-col sm:flex-row h-full sm:h-[80vh] w-full max-w-5xl bg-white rounded-lg shadow overflow-hidden border">
+    {/* Sidebar (Chat List) */}
+    <div
+      className={`w-full sm:w-72 border-r bg-gray-50 flex-col ${
+        selectedConvId && window.innerWidth < 640 ? "hidden" : "flex"
+      }`}
+    >
+      <div className="p-4 font-semibold text-xl border-b bg-white">Chats</div>
+      <div className="flex-1 overflow-y-auto">
+        {conversations.map((conv) => {
+          const otherUserInConv = getOtherUser(conv, currentUser?.uuid || "");
+          return (
+            <div
+              key={conv.id}
+              className={`px-4 py-3 border-b cursor-pointer hover:bg-gray-100 ${
+                conv.id === selectedConvId ? "bg-orange-100" : ""
+              }`}
+              onClick={() => setSelectedConvId(conv.id)}
+            >
+              <div className="font-semibold">{otherUserInConv.name}</div>
+              <div className="text-sm text-gray-500 truncate">
+                {conv.lastMessage?.text || "No messages yet"}
               </div>
             </div>
-          )}
-        </div>
+          );
+        })}
       </div>
+    </div>
+
+    {/* Chat Window */}
+    <div
+      className={`flex-1 flex flex-col min-h-0 ${
+        !selectedConvId && window.innerWidth < 640 ? "hidden" : "flex"
+      }`}
+    >
+      {selectedConvId ? (
+        <>
+          {/* Header */}
+          <div className="flex items-center gap-3 border-b px-6 py-4 bg-white">
+            {/* Mobile Back Button */}
+            {window.innerWidth < 640 && (
+              <button
+                onClick={() => setSelectedConvId(null)}
+                className="mr-2 text-orange-500 font-semibold"
+              >
+                ← Back
+              </button>
+            )}
+            <div className="relative">
+              <div className="w-10 h-10 bg-orange-300 rounded-full" />
+            </div>
+            <div className="flex-1">
+              <div className="font-semibold text-lg">
+                {
+                  getOtherUser(
+                    conversations.find((c) => c.id === selectedConvId)!,
+                    currentUser?.uuid || ""
+                  ).name
+                }
+              </div>
+              <div className="text-sm text-gray-500">Online</div>
+            </div>
+          </div>
+
+          {/* Messages */}
+          <div className="flex-1 min-h-0 p-4 overflow-y-auto">
+            {messages.map((msg, idx) => (
+              <div
+                key={idx}
+                className={`mb-2 max-w-[75%] px-4 py-2 rounded-lg ${
+                  msg.senderUuid === currentUser?.uuid
+                    ? "bg-orange-500 text-white self-end ml-auto"
+                    : "bg-gray-200 text-gray-800"
+                }`}
+              >
+                <div>{msg.text}</div>
+                {msg.attachments && msg.attachments.length > 0 && (
+                  <div className="mt-2">
+                    {msg.attachments.map((att, i) => (
+                      <div key={i}>
+                        {renderFilePreview(att)}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Input Box */}
+          <div className="border-t px-4 py-3 bg-white shrink-0">
+            <form onSubmit={handleSend} className="flex items-center gap-3">
+              <input
+                type="text"
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                className="flex-1 px-4 py-2 border rounded-lg bg-gray-100 outline-none"
+                placeholder="Type a message..."
+              />
+              <input
+                type="file"
+                ref={fileInputRef}
+                style={{ display: "none" }}
+                onChange={handleFileChange}
+                accept="*"
+              />
+              <button
+                type="button"
+                className="p-2 rounded-full hover:bg-gray-200 text-gray-700"
+                onClick={() => fileInputRef.current?.click()}
+                aria-label="Attach file"
+              >
+                {/* Paperclip icon */}
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75V7.5a4.5 4.5 0 10-9 0v7.5a6 6 0 0012 0V9.75" />
+                </svg>
+              </button>
+              <button
+                type="submit"
+                className="p-2 rounded-full bg-orange-500 hover:bg-orange-600 text-white"
+                aria-label="Send message"
+              >
+                {/* Paper plane icon */}
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21l16.5-9-16.5-9v7.5l13.5 1.5-13.5 1.5v7.5z" />
+                </svg>
+              </button>
+            </form>
+            {fileError && <div className="text-red-500 text-xs px-4 pb-2">{fileError}</div>}
+          </div>
+        </>
+      ) : (
+        <div className="flex items-center justify-center h-full text-gray-400">
+          Select a chat to start messaging
+        </div>
+      )}
+    </div>
+  </div>
+</div>
 
       {/* File Preview Modal */}
       {showFilePreview && (

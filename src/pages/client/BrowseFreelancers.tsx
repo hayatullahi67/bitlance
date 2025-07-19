@@ -22,7 +22,6 @@ const BrowseFreelancers = () => {
   const [searching, setSearching] = useState(false);
   const [filters, setFilters] = useState<SearchFilters>({});
   const [sortBy, setSortBy] = useState<SortOptions>({ field: 'newest', direction: 'desc' });
-  const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedSort, setSelectedSort] = useState("newest");
   const [btcUsdRate, setBtcUsdRate] = useState<number>(0);
 
@@ -74,22 +73,6 @@ const BrowseFreelancers = () => {
       });
     } finally {
       setSearching(false);
-    }
-  };
-
-  const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category);
-    if (category === "all") {
-      setFilters(prev => ({ ...prev, skills: undefined }));
-    } else {
-      // Map categories to skills
-      const categorySkills: { [key: string]: string[] } = {
-        development: ["React", "Node.js", "Python", "JavaScript", "TypeScript", "Java", "C++", "PHP"],
-        design: ["Figma", "Adobe", "UI/UX", "Graphic Design", "Illustration", "Prototyping"],
-        writing: ["Content Writing", "Copywriting", "Technical Writing", "Blog Writing", "SEO"],
-        marketing: ["Digital Marketing", "SEO", "Social Media", "Email Marketing", "PPC"]
-      };
-      setFilters(prev => ({ ...prev, skills: categorySkills[category] || [] }));
     }
   };
 
@@ -155,18 +138,6 @@ const BrowseFreelancers = () => {
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                 />
               </div>
-              <Select value={selectedCategory} onValueChange={handleCategoryChange}>
-                <SelectTrigger className="w-full md:w-48">
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="development">Development</SelectItem>
-                  <SelectItem value="design">Design</SelectItem>
-                  <SelectItem value="writing">Writing</SelectItem>
-                  <SelectItem value="marketing">Marketing</SelectItem>
-                </SelectContent>
-              </Select>
               <Button 
                 className="bg-orange-500 hover:bg-orange-600 text-white"
                 onClick={handleSearch}

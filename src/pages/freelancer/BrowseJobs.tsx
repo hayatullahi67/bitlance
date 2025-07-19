@@ -331,17 +331,17 @@ const BrowseJobs = () => {
                 <Card key={job.id} className="hover:shadow-md transition-shadow cursor-pointer"
                       onClick={() => handleJobClick(job.id, job)}>
                   <CardHeader>
-                    <div className="flex justify-between items-start">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
                       <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <CardTitle className="text-xl">{job.title}</CardTitle>
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 mb-2">
+                          <CardTitle className="text-lg sm:text-xl break-words">{job.title}</CardTitle>
                           {job.verified && (
-                            <Badge className="bg-green-100 text-green-800 text-xs">
+                            <Badge className="bg-green-100 text-green-800 text-xs mt-1 sm:mt-0">
                               Verified Client
                             </Badge>
                           )}
                         </div>
-                        <CardDescription className="mb-3">
+                        <CardDescription className="mb-3 text-sm sm:text-base">
                           {job.description && job.description.length > 120
                             ? <>
                                 {job.description.slice(0, 120)}...
@@ -355,7 +355,7 @@ const BrowseJobs = () => {
                               </>
                             : job.description}
                         </CardDescription>
-                        <div className="flex items-center space-x-4 text-sm text-gray-500">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-1 sm:space-y-0 text-xs sm:text-sm text-gray-500 mt-2">
                           <span>By {job.clientName || "Client"}</span>
                           <span className="flex items-center">
                             <Clock className="h-4 w-4 mr-1" />
@@ -368,8 +368,8 @@ const BrowseJobs = () => {
                           </span>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-lg font-semibold text-orange-600 mb-2">{formatBudget(job.budget)}</div>
+                      <div className="text-left sm:text-right mt-2 sm:mt-0 min-w-[100px]">
+                        <div className="text-base sm:text-lg font-semibold text-orange-600 mb-2 break-words">{formatBudget(job.budget)}</div>
                         <Badge variant="outline">{job.budget?.type === "fixed" ? "Fixed Price" : "Hourly"}</Badge>
                       </div>
                     </div>
@@ -384,7 +384,7 @@ const BrowseJobs = () => {
                         ))}
                       </div>
                     )}
-                    <div className="flex space-x-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <Button 
                         size="sm" 
                         className="flex-1"
@@ -398,6 +398,7 @@ const BrowseJobs = () => {
                       <Button 
                         size="sm" 
                         variant="outline"
+                        className="flex-1"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleJobClick(job.id, job);
@@ -405,7 +406,7 @@ const BrowseJobs = () => {
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" className="flex-1">
                         <MessageSquare className="h-4 w-4" />
                       </Button>
                     </div>

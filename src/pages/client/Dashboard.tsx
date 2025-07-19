@@ -322,8 +322,12 @@ const ClientDashboard = () => {
         <div className="mb-8">
           <div className="flex justify-between items-start">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome back, {userName || "..."}!</h2>
-              <p className="text-gray-600">Here's what's happening with your projects today.</p>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                <span className="hidden sm:inline">Welcome back, {userName || "..."}!</span>
+                <span className="inline sm:hidden">Welcome, {userName?.split(' ')[0] || "..."}!</span>
+              </h2>
+              <p className="text-gray-600 hidden sm:block">Here's what's happening with your projects today.</p>
+              <p className="text-gray-600 block sm:hidden text-sm">Your project updates.</p>
             </div>
             <Button
               className="bg-orange-500 hover:bg-orange-600 text-white"
@@ -395,11 +399,11 @@ const ClientDashboard = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 max-w-2xl mb-8">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="projects">Active Projects</TabsTrigger>
-            <TabsTrigger value="proposals">Proposals</TabsTrigger>
-            <TabsTrigger value="activity">Activity</TabsTrigger>
+          <TabsList className="flex max-sm:overflow-x-auto w-full max-w-2xl mb-8 gap-2 sm:grid sm:grid-cols-4 sm:gap-0">
+            <TabsTrigger value="overview" className="min-w-max px-4 max-sm:ml-[100px] py-2 whitespace-nowrap">Overview</TabsTrigger>
+            <TabsTrigger value="projects" className="min-w-max px-4 py-2 whitespace-nowrap">Active Projects</TabsTrigger>
+            <TabsTrigger value="proposals" className="min-w-max px-4 py-2 whitespace-nowrap">Proposals</TabsTrigger>
+            <TabsTrigger value="activity" className="min-w-max px-4 py-2 whitespace-nowrap">Activity</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-8">
@@ -459,14 +463,12 @@ const ClientDashboard = () => {
               ) : (
                 <div className="flex flex-col gap-6">
                   {jobsPosted.map((job: any) => {
-                    const isExpanded = expandedJobId === job.id;
                     const desc = job.description || "";
-                    const paragraphs = desc.split(/\n+/).filter(Boolean);
-                    const shouldTruncate = paragraphs.length > 4;
-                    const displayDesc = isExpanded || !shouldTruncate
-                      ? paragraphs.join("\n\n")
-                      : paragraphs.slice(0, 4).join("\n\n") + "...";
-                    
+                    // Truncate to about 180 characters (roughly 2-3 lines)
+                    const maxDescLength = 180;
+                    const isLong = desc.length > maxDescLength;
+                    const displayDesc = isLong ? desc.slice(0, maxDescLength) + "..." : desc;
+
                     const formatBudget = (budget: any) => {
                       if (budget?.type === "fixed") {
                         return `${budget.min} - ${budget.max} BTC`;
@@ -550,18 +552,18 @@ const ClientDashboard = () => {
                         <CardContent>
                           <div className="text-gray-700 text-sm">
                             {displayDesc}
-                              {shouldTruncate && (
-                                <button
-                                className="text-orange-500 hover:text-orange-600 ml-2"
-                                onClick={(e) => {
+                            {isLong && (
+                              <button
+                                className="text-orange-500 hover:text-orange-600 ml-2 underline"
+                                onClick={e => {
                                   e.stopPropagation();
-                                  setExpandedJobId(isExpanded ? null : job.id);
+                                  navigate(`/client/job/${job.id}`);
                                 }}
                               >
-                                {isExpanded ? "Show less" : "Show more"}
-                                </button>
-                          )}
-                        </div>
+                                See more
+                              </button>
+                            )}
+                          </div>
                         </CardContent>
                       </Card>
                     );

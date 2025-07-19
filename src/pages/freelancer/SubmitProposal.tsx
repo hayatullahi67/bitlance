@@ -152,7 +152,7 @@ const SubmitProposal = () => {
           console.log("Creating proposal notification:", {
             senderUuid: user.uid,
             receiverUuid: job.clientId,
-            senderName: `${freelancerData.firstName} ${freelancerData.lastName}`,
+            senderName: `${freelancerData.lastName} ${freelancerData.firstName}`,
             receiverName: `${clientData.firstName} ${clientData.lastName}`,
             message: `New proposal received for "${job.title}" from ${freelancerData.firstName}`
           });
@@ -160,7 +160,7 @@ const SubmitProposal = () => {
           await createNotification({
             senderUuid: user.uid,
             receiverUuid: job.clientId,
-            senderName: `${freelancerData.firstName} ${freelancerData.lastName}`,
+            senderName: `${freelancerData.lastName} ${freelancerData.firstName}`,
             receiverName: `${clientData.firstName} ${clientData.lastName}`,
             type: "new_proposal",
             message: `New proposal received for "${job.title}" from ${freelancerData.firstName}`,
