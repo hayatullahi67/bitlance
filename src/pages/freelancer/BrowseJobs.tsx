@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
-import Layout from "@/components/layout/Layout";
-import { Search, MapPin, Star, Clock, Eye, MessageSquare, Filter, AlertCircle } from "lucide-react";
+import FreelancerHeader from "@/components/layout/FreelancerHeader";
+import { Search, MapPin, Star, Clock, Eye, MessageSquare, Filter, AlertCircle, Users } from "lucide-react";
 import { handleLogout } from "@/lib/authUtils";
 import { auth, db } from "@/lib/firebaseClient";
 import { onAuthStateChanged } from "firebase/auth";
@@ -210,13 +210,8 @@ const BrowseJobs = () => {
   };
 
   return (
-    <Layout 
-      userType="freelancer"
-      userName={userName || "..."}
-      userAvatar="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face"
-      onFindWork={() => navigate("/freelancer/browse-jobs")}
-      onLogout={handleLogout}
-    >
+    <>
+      <FreelancerHeader />
       <div className="container mx-auto px-4 py-8">
         {/* Search Section */}
         <div className="mb-8">
@@ -366,6 +361,12 @@ const BrowseJobs = () => {
                             <MapPin className="h-4 w-4 mr-1" />
                             {job.location || "Remote"}
                           </span>
+                          {job.numberOfFreelancers && (
+                            <span className="flex items-center">
+                              <Users className="h-4 w-4 mr-1" />
+                              Hiring {job.numberOfFreelancers} freelancer{job.numberOfFreelancers > 1 ? 's' : ''}
+                            </span>
+                          )}
                         </div>
                       </div>
                       <div className="text-left sm:text-right mt-2 sm:mt-0 min-w-[100px]">
@@ -417,7 +418,7 @@ const BrowseJobs = () => {
           )}
         </div>
       </div>
-    </Layout>
+    </>
   );
 };
 

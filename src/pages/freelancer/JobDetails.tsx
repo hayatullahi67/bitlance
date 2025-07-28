@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate, useParams } from "react-router-dom";
-import Layout from "@/components/layout/Layout";
+import FreelancerHeader from "@/components/layout/FreelancerHeader";
 import { 
   Clock, 
   MapPin, 
@@ -23,7 +23,8 @@ import {
   Zap,
   AlertCircle,
   Loader2,
-  Eye
+  Eye,
+  Users
 } from "lucide-react";
 import { handleLogout } from "@/lib/authUtils";
 import { auth, db } from "@/lib/firebaseClient";
@@ -262,32 +263,22 @@ const JobDetails = () => {
 
   if (loading) {
     return (
-      <Layout 
-        userType="freelancer"
-        userName={userName || "..."}
-        userAvatar="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face"
-        onFindWork={() => navigate("/freelancer/browse-jobs")}
-        onLogout={handleLogout}
-      >
+      <>
+        <FreelancerHeader />
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
             <p className="mt-4 text-gray-600">Loading job details...</p>
           </div>
         </div>
-      </Layout>
+      </>
     );
   }
 
   if (error || !job) {
     return (
-      <Layout 
-        userType="freelancer"
-        userName={userName || "..."}
-        userAvatar="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face"
-        onFindWork={() => navigate("/freelancer/browse-jobs")}
-        onLogout={handleLogout}
-      >
+      <>
+        <FreelancerHeader />
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center max-w-md">
             <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
@@ -314,7 +305,7 @@ const JobDetails = () => {
             </div>
           </div>
         </div>
-      </Layout>
+      </>
     );
   }
 
@@ -322,13 +313,8 @@ const JobDetails = () => {
   const alreadyApplied = job?.proposals?.some((p: any) => p.freelancerId === user?.uid);
 
   return (
-    <Layout 
-      userType="freelancer"
-      userName={userName || "..."}
-      userAvatar="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face"
-      onFindWork={() => navigate("/freelancer/browse-jobs")}
-      onLogout={handleLogout}
-    >
+    <>
+      <FreelancerHeader />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           {/* Job Header */}
@@ -357,6 +343,12 @@ const JobDetails = () => {
                     <Eye className="h-4 w-4" />
                     <span>{job.views || 0} views</span>
                   </div>
+                  {job.numberOfFreelancers && (
+                    <div className="flex items-center space-x-1">
+                      <Users className="h-4 w-4" />
+                      <span>Hiring {job.numberOfFreelancers} freelancer{job.numberOfFreelancers > 1 ? 's' : ''}</span>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-4 sm:mt-0">
@@ -522,52 +514,59 @@ const JobDetails = () => {
                     <span className="text-gray-600">Category</span>
                     <span className="font-semibold">{job.category || 'N/A'}</span>
                   </div>
+                  {job.numberOfFreelancers && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Number of Freelancers</span>
+                      <span className="font-semibold">{job.numberOfFreelancers}</span>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
           </div>
         </div>
-      </div>
-      <Dialog open={showProposalModal} onOpenChange={setShowProposalModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Submit Proposal</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Textarea
-              placeholder="Cover letter/message"
-              value={proposalMessage}
-              onChange={e => setProposalMessage(e.target.value)}
-              required
-            />
-            <Input
-              type="number"
-              placeholder="Proposed budget (BTC)"
-              value={proposalBudget}
-              onChange={e => setProposalBudget(e.target.value)}
-            />
-            <Input
-              type="text"
-              placeholder="Delivery time (e.g., 2 weeks)"
-              value={proposalDelivery}
-              onChange={e => setProposalDelivery(e.target.value)}
-            />
-            <div>
-              <label className="block mb-1">Attachment (optional, max {MAX_FILE_SIZE_MB}MB):</label>
-              <Input type="file" accept="*" onChange={handleFileChange} />
-              {proposalFileName && <div className="text-xs mt-1">Selected: {proposalFileName}</div>}
-              {fileError && <div className="text-xs text-red-500 mt-1">{fileError}</div>}
+        <Dialog open={showProposalModal} onOpenChange={setShowProposalModal}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Submit Proposal</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <Textarea
+                placeholder="Cover letter/message"
+                value={proposalMessage}
+                onChange={e => setProposalMessage(e.target.value)}
+                required
+              />
+              <Input
+                type="number"
+                placeholder="Proposed budget (BTC)"
+                value={proposalBudget}
+                onChange={e => setProposalBudget(e.target.value)}
+              />
+              <Input
+                type="text"
+                placeholder="Delivery time (e.g., 2 weeks)"
+                value={proposalDelivery}
+                onChange={e => setProposalDelivery(e.target.value)}
+              />
+              <div>
+                <label className="block mb-1">Attachment (optional, max {MAX_FILE_SIZE_MB}MB):</label>
+                <Input type="file" accept="*" onChange={handleFileChange} />
+                {proposalFileName && <div className="text-xs mt-1">Selected: {proposalFileName}</div>}
+                {fileError && <div className="text-xs text-red-500 mt-1">{fileError}</div>}
+              </div>
             </div>
-          </div>
-          <DialogFooter>
-            <Button onClick={handleProposalSubmit} disabled={submittingProposal || !!fileError}>
-              {submittingProposal ? "Submitting..." : "Submit Proposal"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </Layout>
-  );
+            <DialogFooter>
+              <Button onClick={handleProposalSubmit} disabled={submittingProposal || !!fileError}>
+                {submittingProposal ? "Submitting..." : "Submit Proposal"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      
+      </div>
+      </>
+    );
 };
 
 export default JobDetails; 

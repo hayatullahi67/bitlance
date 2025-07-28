@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
-import Layout from "@/components/layout/Layout";
+import ClientHeader from "@/components/layout/ClientHeader";
 import { Search, Star, MapPin, Plus, Filter, Loader2, Users } from "lucide-react";
 import { handleLogout } from "@/lib/authUtils";
 import { getFreelancers, searchFreelancers, FreelancerData, SearchFilters, SortOptions } from "@/lib/freelancerSearch";
@@ -99,13 +99,8 @@ const BrowseFreelancers = () => {
   };
 
   return (
-    <Layout 
-      userType="client"
-      userName={userName || "..."}
-      userAvatar="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face"
-      onPostJob={() => navigate("/post-job")}
-      onLogout={handleLogout}
-    >
+    <>
+      <ClientHeader />
       <div className="container mx-auto px-4 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
@@ -262,7 +257,7 @@ const BrowseFreelancers = () => {
           )}
         </div>
       </div>
-    </Layout>
+    </>
   );
 };
 

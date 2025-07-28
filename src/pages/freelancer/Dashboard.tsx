@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
-import Layout from "@/components/layout/Layout";
+import FreelancerHeader from "@/components/layout/FreelancerHeader";
 import { 
   Zap, 
   Search, 
@@ -373,13 +373,8 @@ const FreelancerDashboard = () => {
   };
 
   return (
-    <Layout 
-      userType="freelancer"
-      userName={userName || "..."}
-      userAvatar="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face"
-      onFindWork={() => navigate("/browse-jobs")}
-      onLogout={handleLogout}
-    >
+    <>
+      <FreelancerHeader />
       <div className="container mx-auto px-4 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
@@ -967,7 +962,7 @@ const FreelancerDashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </Layout>
+    </>
   );
 };
 

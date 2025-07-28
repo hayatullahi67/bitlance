@@ -9,6 +9,10 @@ interface PrivateRouteProps {
   requiredUserType: "client" | "freelancer";
 }
 
+interface AuthenticatedRouteProps {
+  children: React.ReactNode;
+}
+
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, requiredUserType }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -69,4 +73,61 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, requiredUserType 
   return <>{children}</>;
 };
 
-export default PrivateRoute; 
+// New component for routes that allow both client and freelancer user types
+const AuthenticatedRoute: React.FC<AuthenticatedRouteProps> = ({ children }) => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userType, setUserType] = useState<string | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          // Fetch user data from Firestore
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            setUserType(userData.userType);
+            setIsAuthenticated(true);
+          } else {
+            setIsAuthenticated(false);
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+          setIsAuthenticated(false);
+        }
+      } else {
+        setIsAuthenticated(false);
+        setUserType(null);
+      }
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Allow access if user is either client or freelancer
+  if (userType !== "client" && userType !== "freelancer") {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+export default PrivateRoute;
+export { AuthenticatedRoute }; 

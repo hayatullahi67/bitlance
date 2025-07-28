@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import Layout from "@/components/layout/Layout";
+import FreelancerHeader from "@/components/layout/FreelancerHeader";
 import { db, auth } from "@/lib/firebaseClient";
 import { doc, getDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
@@ -163,31 +163,21 @@ const PublicProfile: React.FC = () => {
   
   if (notFound || !profile) {
     return (
-      <Layout 
-        userType={userType} 
-        userName={userName || "Not Found"} 
-        userAvatar={undefined}
-        onPostJob={userType === "client" ? () => navigate("/post-job") : undefined}
-        onLogout={handleLogout}
-      >
+      <>
+        <FreelancerHeader  />
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-700 mb-2">Profile Not Found</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Profile Not Found</h2>
             <p className="text-gray-500">This freelancer profile does not exist or is not public.</p>
           </div>
         </div>
-      </Layout>
+      </>
     );
   }
 
   return (
-    <Layout
-      userType={userType}
-      userName={userName || "User"}
-      userAvatar={userType === "freelancer" ? profile.imageUrl : undefined}
-      onPostJob={userType === "client" ? () => navigate("/post-job") : undefined}
-      onLogout={handleLogout}
-    >
+    <>
+      <FreelancerHeader/>
       {/* Banner */}
       <div className="relative h-48 md:h-56 w-full bg-gradient-to-r from-orange-400 to-orange-600 rounded-b-3xl overflow-hidden shadow">
         <img
@@ -401,7 +391,7 @@ const PublicProfile: React.FC = () => {
           )}
         </div>
       </div>
-    </Layout>
+    </>
   );
 };
 

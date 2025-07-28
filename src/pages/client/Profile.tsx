@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
-import Layout from "@/components/layout/Layout";
+import ClientHeader from "@/components/layout/ClientHeader";
 import { 
   Zap, 
   Edit, 
@@ -171,14 +171,8 @@ const ClientProfile = () => {
   };
 
   return (
-    <Layout 
-      userType="client"
-      userName={userName}
-      userAvatar="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
-      title="Profile"
-      onPostJob={() => navigate("/post-job")}
-      onLogout={handleLogout}
-    >
+    <>
+      <ClientHeader />
       <div className="container mx-auto px-4 py-8">
         {/* Profile Header */}
         <Card className="mb-8">
@@ -525,7 +519,7 @@ const ClientProfile = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </Layout>
+    </>
   );
 };
 

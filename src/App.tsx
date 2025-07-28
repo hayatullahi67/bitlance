@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import PrivateRoute from "./components/PrivateRoute";
+import PrivateRoute, { AuthenticatedRoute } from "./components/PrivateRoute";
 import Index from "./pages/Index";
 import ClientDashboard from "./pages/client/Dashboard";
 import FreelancerDashboard from "./pages/freelancer/Dashboard";
@@ -26,6 +26,7 @@ import BrowseJobsPublic from "./pages/BrowseJobs";
 import FindTalent from "./pages/FindTalent";
 import HowItWorks from "./pages/HowItWorks";
 import About from "./pages/About";
+import EditJob from "./pages/client/EditJob";
 
 const queryClient = new QueryClient();
 
@@ -66,6 +67,11 @@ const App = () => (
               <JobDetailsClient />
             </PrivateRoute>
           } />
+          <Route path="/edit-job/:id" element={
+            <PrivateRoute requiredUserType="client">
+              <EditJob />
+            </PrivateRoute>
+          } />
           
           {/* Freelancer Routes - Protected */}
           <Route path="/freelancer-dashboard" element={
@@ -97,7 +103,11 @@ const App = () => (
           {/* Public Routes */}
           <Route path="/freelancer/public-profile/:id" element={<PublicProfile />} />
           <Route path="/pay" element={<PaymentPage />} />
-          <Route path="/messages" element={<Messages />} />
+          <Route path="/messages" element={
+            <AuthenticatedRoute>
+              <Messages />
+            </AuthenticatedRoute>
+          } />
           <Route path="/test-chat" element={<TestChat />} />
           <Route path="/jobs" element={<BrowseJobsPublic />} />
           <Route path="/find-talent" element={<FindTalent />} />

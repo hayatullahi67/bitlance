@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
-import Layout from "@/components/layout/Layout";
+import ClientHeader from "@/components/layout/ClientHeader";
 import { 
   Zap, 
   Plus, 
@@ -34,10 +34,11 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { auth, db } from "@/lib/firebaseClient";
 import { onAuthStateChanged } from "firebase/auth";
-import { onSnapshot, collection } from "firebase/firestore";
-import { doc, getDoc, query, where, getDocs, orderBy } from "firebase/firestore";
+import { onSnapshot, collection, deleteDoc, doc, getDoc } from "firebase/firestore";
+import { query, where, getDocs, orderBy } from "firebase/firestore";
 import { handleLogout } from "@/lib/authUtils";
 import { sendFirstMessage, createOrGetConversation } from "@/lib/conversation";
+import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog";
 
 const ClientDashboard = () => {
   const navigate = useNavigate();
@@ -51,6 +52,8 @@ const ClientDashboard = () => {
   const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
   const [activeProjects, setActiveProjects] = useState<any[]>([]);
   const [loadingActiveProjects, setLoadingActiveProjects] = useState(true);
+  const [deleteJobId, setDeleteJobId] = useState<string | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   useEffect(() => {
     // Fetch user name and jobs from Firebase
@@ -310,13 +313,8 @@ const ClientDashboard = () => {
 
 
   return (
-    <Layout 
-      userType="client"
-      userName={userName || "..."}
-      userAvatar="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face"
-      onPostJob={() => navigate("/post-job")}
-      onLogout={handleLogout}
-    >
+    <>
+      <ClientHeader />
       <div className="container mx-auto px-4 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
@@ -521,7 +519,10 @@ const ClientDashboard = () => {
                                 <span><span className="font-medium">Posted:</span> {formatDate(job.createdAt)}</span>
                                 <span><span className="font-medium">Views:</span> {job.views || 0}</span>
                                 <span><span className="font-medium">Proposals:</span> {job.proposals?.length || 0}</span>
-                          </div>
+                                {job.numberOfFreelancers && (
+                                  <span><span className="font-medium">Hiring:</span> {job.numberOfFreelancers} freelancer{job.numberOfFreelancers > 1 ? 's' : ''}</span>
+                                )}
+                              </div>
                               
                               {job.skills && job.skills.length > 0 && (
                           <div className="flex flex-wrap gap-2 mb-3">
@@ -544,6 +545,27 @@ const ClientDashboard = () => {
                                 }}
                               >
                                 View Details
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  navigate(`/edit-job/${job.id}`);
+                                }}
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  setDeleteJobId(job.id);
+                                  setDeleteModalOpen(true);
+                                }}
+                              >
+                                Delete
                               </Button>
                             </div>
                           </div>
@@ -796,7 +818,34 @@ const ClientDashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </Layout>
+      {/* Delete Confirmation Modal */}
+      <AlertDialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Job</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this job? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteModalOpen(false)}>No</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (deleteJobId) {
+                  await deleteDoc(doc(db, 'jobs', deleteJobId));
+                  setJobsPosted(jobsPosted.filter(j => j.id !== deleteJobId));
+                  toast({ title: 'Job deleted', description: 'The job has been deleted.' });
+                  setDeleteJobId(null);
+                  setDeleteModalOpen(false);
+                }
+              }}
+            >
+              Yes, Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
 

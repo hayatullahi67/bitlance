@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Layout from "@/components/layout/Layout";
+import FreelancerHeader from "@/components/layout/FreelancerHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -261,25 +261,23 @@ const Profile: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <Layout userType="freelancer" userName={`${profile.firstName} ${profile.lastName}`.trim() || "Loading..."} userAvatar={profile.imageUrl}>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading profile...</p>
-          </div>
+    return ( 
+
+      <>
+      <FreelancerHeader />
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading profile...</p>
         </div>
-      </Layout>
+      </div>
+      </>
     );
   }
 
   return (
-    <Layout
-      userType="freelancer"
-      userName={`${profile.firstName} ${profile.lastName}`.trim() || "Complete Your Profile"}
-      userAvatar={profile.imageUrl}
-      onLogout={handleLogout}
-    >
+    <>
+      <FreelancerHeader />
       {/* Banner */}
       <div className="relative md:h-56 w-full bg-gradient-to-r from-orange-400 to-orange-600 rounded-b-3xl overflow-hidden shadow">
         <img
@@ -838,7 +836,7 @@ const Profile: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
-    </Layout>
+    </>
   );
 };
 

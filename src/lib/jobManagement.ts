@@ -39,10 +39,11 @@ export interface JobData {
   status: "open" | "in_progress" | "completed" | "expired" | "cancelled";
   createdAt: Timestamp;
   updatedAt: Timestamp;
-  expiresAt?: Timestamp;
+  // expiresAt?: Timestamp;
   proposals: ProposalData[];
   views: number;
   applications: number;
+  numberOfFreelancers: number;
 }
 
 // Proposal interfaces
@@ -114,8 +115,6 @@ export const createJob = async (jobData: Omit<JobData, 'id' | 'createdAt' | 'upd
   }
 
   const now = serverTimestamp() as Timestamp;
-  const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + JOB_EXPIRATION_DAYS);
 
   const jobToSave: Omit<JobData, 'id'> = {
     ...jobData,
@@ -124,10 +123,10 @@ export const createJob = async (jobData: Omit<JobData, 'id' | 'createdAt' | 'upd
     status: "open",
     createdAt: now,
     updatedAt: now,
-    expiresAt: Timestamp.fromDate(expiresAt),
     proposals: [],
     views: 0,
     applications: 0,
+    numberOfFreelancers: jobData.numberOfFreelancers,
   };
 
   const docRef = await addDoc(collection(db, "jobs"), jobToSave);

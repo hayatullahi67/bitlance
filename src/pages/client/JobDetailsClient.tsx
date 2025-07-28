@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import Layout from "@/components/layout/Layout";
+import ClientHeader from "@/components/layout/ClientHeader";
 import { 
   ArrowLeft, 
   Clock, 
@@ -28,7 +28,7 @@ import {
   ExternalLink
 } from "lucide-react";
 import { handleLogout } from "@/lib/authUtils";
-import { getJob, updateJobStatus, deleteJob, extendJobExpiration, JobData, updateProposalStatus, ProposalData } from "@/lib/jobManagement";
+import { getJob, updateJobStatus, deleteJob, JobData, updateProposalStatus, ProposalData } from "@/lib/jobManagement";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { doc, getDoc, updateDoc, collection, getDocs } from "firebase/firestore";
@@ -43,7 +43,7 @@ const JobDetailsClient = () => {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [showExtendDialog, setShowExtendDialog] = useState(false);
+
   const [proposals, setProposals] = useState<ProposalData[]>([]);
   const [loadingProposals, setLoadingProposals] = useState(false);
   const [selectedProposal, setSelectedProposal] = useState<ProposalData | null>(null);
@@ -210,32 +210,21 @@ const JobDetailsClient = () => {
     }
   };
 
-  const handleExtendJob = async () => {
-    if (!jobId) return;
-
-    setUpdating(true);
-    try {
-      await extendJobExpiration(jobId);
-      await loadJob(); // Reload job to get updated expiration
-      toast({
-        title: "Job extended",
-        description: "Job expiration has been extended by 30 days.",
-      });
-    } catch (error) {
-      console.error("Error extending job:", error);
-      toast({
-        title: "Error",
-        description: "Failed to extend job expiration.",
-        variant: "destructive",
-      });
-    } finally {
-      setUpdating(false);
-      setShowExtendDialog(false);
-    }
-  };
+  // Helper to count accepted proposals
+  const acceptedProposalsCount = proposals.filter(p => p.status === 'accepted').length;
+  const canAcceptMore = job && acceptedProposalsCount < job.numberOfFreelancers;
 
   const handleProposalAction = async (proposalId: string, action: 'accept' | 'reject') => {
     if (!jobId) return;
+    // Prevent accepting more than allowed
+    if (action === 'accept' && job && acceptedProposalsCount >= job.numberOfFreelancers) {
+      toast({
+        title: 'Limit reached',
+        description: `You have already accepted the maximum number of freelancers for this job.`,
+        variant: 'destructive',
+      });
+      return;
+    }
     
     setUpdating(true);
     try {
@@ -373,63 +362,42 @@ const JobDetailsClient = () => {
 
   if (loading) {
     return (
-      <Layout 
-        userType="client"
-        userName="Loading..."
-        userAvatar=""
-        title="Job Details"
-        onPostJob={() => navigate("/post-job")}
-        onLogout={handleLogout}
-      >
-        <div className="w-full flex justify-center py-8">
-          <div className="w-4/5 max-w-7xl">
-            <div className="flex items-center justify-center h-64">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-                <p className="text-gray-600">Loading job details...</p>
-              </div>
+      <>
+      <ClientHeader />
+      <div className="w-full flex justify-center py-8">
+        <div className="w-4/5 max-w-7xl">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading job details...</p>
             </div>
           </div>
         </div>
-      </Layout>
+      </div> </>
     );
   }
 
   if (!job) {
-    return (
-      <Layout 
-        userType="client"
-        userName="Error"
-        userAvatar=""
-        title="Job Not Found"
-        onPostJob={() => navigate("/post-job")}
-        onLogout={handleLogout}
-      >
-        <div className="w-full flex justify-center py-8">
-          <div className="w-4/5 max-w-7xl">
-            <div className="text-center">
-              <h1 className="text-2xl font-bold text-gray-900 mb-4">Job Not Found</h1>
-              <p className="text-gray-600 mb-6">The job you're looking for doesn't exist or has been removed.</p>
-              <Button onClick={() => navigate("/client-dashboard")}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Button>
-            </div>
+    return (<>
+      <ClientHeader />
+      <div className="w-full flex justify-center py-8">
+        <div className="w-4/5 max-w-7xl">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Job Not Found</h1>
+            <p className="text-gray-600 mb-6">The job you're looking for doesn't exist or has been removed.</p>
+            <Button onClick={() => navigate("/client-dashboard")}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
           </div>
         </div>
-      </Layout>
+      </div></>
     );
   }
 
   return (
-    <Layout 
-      userType="client"
-      userName="Client"
-      userAvatar=""
-      title={`Job: ${job.title}`}
-      onPostJob={() => navigate("/post-job")}
-      onLogout={handleLogout}
-    >
+    <>
+      <ClientHeader />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
@@ -484,14 +452,7 @@ const JobDetailsClient = () => {
                             <Edit className="h-4 w-4 mr-2" />
                             Edit Job
                           </Button>
-                          <Button 
-                            variant="outline" 
-                            className="w-full justify-start"
-                            onClick={() => setShowExtendDialog(true)}
-                          >
-                            <RefreshCw className="h-4 w-4 mr-2" />
-                            Extend Expiration
-                          </Button>
+                          
                         </>
                       )}
                       <Button 
@@ -576,29 +537,16 @@ const JobDetailsClient = () => {
                       <span className="font-medium">Experience:</span>
                       <span>{job.experience}</span>
                     </div>
+                    {job.numberOfFreelancers && (
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-orange-500" />
+                        <span className="font-medium">Hiring:</span>
+                        <span>{job.numberOfFreelancers} freelancer{job.numberOfFreelancers > 1 ? 's' : ''}</span>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Expiration</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-sm text-gray-600">
-                      <p>Expires {formatDate(job.expiresAt)}</p>
-                      {job.status === "open" && (
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="mt-2 w-full"
-                          onClick={() => setShowExtendDialog(true)}
-                        >
-                          <RefreshCw className="h-4 w-4 mr-2" />
-                          Extend
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+                
               </div>
             </div>
           </TabsContent>
@@ -785,11 +733,14 @@ const JobDetailsClient = () => {
                               size="sm" 
                               className="flex-1 bg-green-600 hover:bg-green-700"
                               onClick={e => { e.stopPropagation(); handleProposalAction(proposal.id!, 'accept'); }}
-                              disabled={updating}
+                              disabled={updating || !canAcceptMore}
                             >
                               <CheckCircle className="h-4 w-4 mr-2" />
                               Accept
                             </Button>
+                            {!canAcceptMore && (
+                              <span className="text-xs text-red-500 ml-2">Limit reached</span>
+                            )}
                             <Button 
                               size="sm" 
                               variant="destructive" 
@@ -891,30 +842,9 @@ const JobDetailsClient = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Extend Expiration Dialog */}
-        <Dialog open={showExtendDialog} onOpenChange={setShowExtendDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Extend Job Expiration</DialogTitle>
-              <DialogDescription>
-                Extend the job expiration by 30 days to give more time for freelancers to apply.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setShowExtendDialog(false)}>
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleExtendJob}
-                disabled={updating}
-              >
-                {updating ? "Extending..." : "Extend Job"}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        
       </div>
-    </Layout>
+    </>
   );
 };
 

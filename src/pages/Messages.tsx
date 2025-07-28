@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import Layout from "@/components/layout/Layout";
-import { auth } from "@/lib/firebaseClient";
+import ClientHeader from "@/components/layout/ClientHeader";
+import FreelancerHeader from "@/components/layout/FreelancerHeader";
+import { auth, db } from "@/lib/firebaseClient";
+import { doc, getDoc } from "firebase/firestore";
 import { Conversation, subscribeToConversations, resetUnreadCount, setTypingIndicator } from "@/lib/conversation";
 import { 
   Message, 
@@ -55,10 +57,36 @@ const Messages = () => {
       setLoading(false);
       return;
     }
-    setUserName(user.displayName || user.email || "User");
-    setUserAvatar(user.photoURL || "https://ui-avatars.com/api/?name=" + encodeURIComponent(user.displayName || user.email || "U"));
-    setUserType("client"); // or "freelancer"; adjust as needed
-    setLoading(false);
+    
+    const fetchUserData = async () => {
+      try {
+        // Fetch user data from Firestore to get the actual userType
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          setUserType(userData.userType || "client"); // Use actual userType from database
+          setUserName(userData.firstName && userData.lastName ? 
+            `${userData.firstName} ${userData.lastName}` : 
+            user.displayName || user.email || "User"
+          );
+        } else {
+          // Fallback if user document doesn't exist
+          setUserType("client");
+          setUserName(user.displayName || user.email || "User");
+        }
+        setUserAvatar(user.photoURL || "https://ui-avatars.com/api/?name=" + encodeURIComponent(user.displayName || user.email || "U"));
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        // Fallback on error
+        setUserType("client");
+        setUserName(user.displayName || user.email || "User");
+        setUserAvatar(user.photoURL || "https://ui-avatars.com/api/?name=" + encodeURIComponent(user.displayName || user.email || "U"));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
   }, []);
 
   // Set initial conversation from URL params
@@ -389,14 +417,9 @@ const Messages = () => {
   const otherUser = selectedConv ? getOtherUser(selectedConv, currentUser?.uuid || "") : null;
 
   return (
-    
-    <Layout
-      userType={userType}
-      userName={userName}
-      userAvatar={userAvatar}
-      title="Messages"
-    >
-<div className="h-screen  flex items-center justify-center bg-gray-100">
+    <>
+      {userType === "client" ? <ClientHeader /> : <FreelancerHeader />}
+      <div className="h-screen flex items-center justify-center bg-gray-100">
   <div className="flex flex-col sm:flex-row h-full sm:h-[80vh] w-full max-w-5xl bg-white rounded-lg shadow overflow-hidden border">
     {/* Sidebar (Chat List) */}
     <div
@@ -553,7 +576,7 @@ const Messages = () => {
           </div>
         </div>
       )}
-    </Layout>
+    </>
   );
 };
 
