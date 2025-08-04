@@ -144,7 +144,7 @@ const LightningPaymentModal = ({ isOpen, onClose, invoice, onPaymentComplete }: 
                 onClick={onClose}
                 className="w-full"
               >
-                Use On-chain BTC
+                Use On-chain Bitcoin
               </Button>
             </div>
           </div>
@@ -172,7 +172,7 @@ const LightningPaymentModal = ({ isOpen, onClose, invoice, onPaymentComplete }: 
               {invoice.amount} {invoice.currency}
             </p>
             <p className="text-sm text-orange-600">
-              ≈ $2,850 USD
+              ≈ 2,850,000 sats
             </p>
           </div>
 

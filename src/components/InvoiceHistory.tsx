@@ -81,7 +81,7 @@ const InvoiceHistory = ({ invoices, userType }: InvoiceHistoryProps) => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-green-600">Total Paid</p>
-                <p className="text-xl font-bold text-green-800">{totalPaid.toFixed(8)} BTC</p>
+                <p className="text-xl font-bold text-green-800">{totalPaid.toLocaleString()} sats</p>
               </div>
               <CheckCircle className="h-8 w-8 text-green-500" />
             </div>
@@ -91,7 +91,7 @@ const InvoiceHistory = ({ invoices, userType }: InvoiceHistoryProps) => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-yellow-600">Pending</p>
-                <p className="text-xl font-bold text-yellow-800">{totalPending.toFixed(8)} BTC</p>
+                <p className="text-xl font-bold text-yellow-800">{totalPending.toLocaleString()} sats</p>
               </div>
               <Clock className="h-8 w-8 text-yellow-500" />
             </div>
@@ -139,9 +139,9 @@ const InvoiceHistory = ({ invoices, userType }: InvoiceHistoryProps) => {
                     <TableCell>
                       <div>
                         <p className="font-medium">{invoice.amount} {invoice.currency}</p>
-                        {invoice.currency === "BTC" && (
+                        {invoice.currency === "sats" && (
                           <p className="text-xs text-gray-500">
-                            ≈ {(parseFloat(invoice.amount) * 100000000).toLocaleString()} sats
+                            ≈ {(parseFloat(invoice.amount) / 100000000).toFixed(8)} BTC (1 BTC = 100,000,000 sats)
                           </p>
                         )}
                       </div>

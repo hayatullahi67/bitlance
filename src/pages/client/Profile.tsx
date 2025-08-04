@@ -95,7 +95,7 @@ const ClientProfile = () => {
     email: userData?.email || "client@example.com",
     phone: "+1 (555) 123-4567",
     joinedDate: "March 2022",
-    totalSpent: "0.45 BTC",
+    totalSpent: "45000000 sats",
     completedProjects: 18,
     avgRating: 4.8,
     responseRate: "95%",
@@ -104,7 +104,7 @@ const ClientProfile = () => {
     companySize: "10-49 employees",
     industry: "Technology",
     founded: "2018",
-    budget: "0.05-0.15 BTC per project"
+            budget: "5000000-15000000 sats per project"
   });
 
   // Update profile data when user data is loaded
@@ -123,7 +123,7 @@ const ClientProfile = () => {
       id: 1,
       title: "E-commerce Platform Redesign",
       freelancer: "Sarah Johnson",
-      budget: "0.08 BTC",
+              budget: "8000000 sats",
       status: "In Progress",
       deadline: "Dec 20, 2025",
       progress: 65
@@ -132,7 +132,7 @@ const ClientProfile = () => {
       id: 2,
       title: "Mobile App Development",
       freelancer: "Mike Chen",
-      budget: "0.12 BTC",
+              budget: "12000000 sats",
       status: "Planning",
       deadline: "Jan 15, 2025",
       progress: 15
@@ -144,7 +144,7 @@ const ClientProfile = () => {
       id: 1,
       title: "Website Development",
       freelancer: "Emily Rodriguez",
-      amount: "0.06 BTC",
+              amount: "6000000 sats",
       completedDate: "Nov 10, 2025",
       rating: 5,
       feedback: "Excellent work! Emily delivered exactly what we needed on time and within budget."
@@ -153,7 +153,7 @@ const ClientProfile = () => {
       id: 2,
       title: "Logo Design",
       freelancer: "Alex Thompson",
-      amount: "0.02 BTC",
+              amount: "2000000 sats",
       completedDate: "Oct 25, 2025",
       rating: 5,
       feedback: "Great design work and very professional communication throughout the project."
@@ -404,7 +404,7 @@ const ClientProfile = () => {
                           <span className="font-medium">Freelancer:</span> {project.freelancer}
                         </div>
                         <div>
-                          <span className="font-medium">Budget:</span> {typeof project.budget === 'object' ? `${project.budget.min || '?'} - ${project.budget.max || '?'} BTC` : project.budget}
+                          <span className="font-medium">Budget:</span> {typeof project.budget === 'object' ? `${project.budget.min || '?'} - ${project.budget.max || '?'} sats` : project.budget}
                         </div>
                         <div>
                           <span className="font-medium">Deadline:</span> {project.deadline}

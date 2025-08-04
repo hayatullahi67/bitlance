@@ -20,7 +20,7 @@ const InvoiceRequest = ({ projectTitle = "", onInvoiceGenerated }: InvoiceReques
   const [formData, setFormData] = useState({
     projectTitle: projectTitle,
     amount: "",
-    currency: "BTC",
+    currency: "sats",
     note: ""
   });
 
@@ -53,7 +53,7 @@ const InvoiceRequest = ({ projectTitle = "", onInvoiceGenerated }: InvoiceReques
     });
 
     setIsOpen(false);
-    setFormData({ projectTitle: "", amount: "", currency: "BTC", note: "" });
+    setFormData({ projectTitle: "", amount: "", currency: "sats", note: "" });
   };
 
   return (
@@ -105,8 +105,8 @@ const InvoiceRequest = ({ projectTitle = "", onInvoiceGenerated }: InvoiceReques
                 value={formData.currency}
                 onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
               >
-                <option value="BTC">BTC</option>
                 <option value="sats">Sats</option>
+                <option value="BTC">BTC</option>
               </select>
             </div>
           </div>

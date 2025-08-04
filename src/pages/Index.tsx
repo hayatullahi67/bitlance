@@ -251,7 +251,7 @@ const FeaturedProjects = () => {
                   </div>
                   <div className="flex items-center space-x-1">
                     <Zap className="w-4 h-4 text-orange-500" />
-                    <span className="text-sm font-medium text-orange-600">{project.budget ? (typeof project.budget === 'object' ? `${project.budget?.min || '?'} - ${project.budget?.max || '?'} BTC` : project.budget) : 'N/A'}</span>
+                    <span className="text-sm font-medium text-orange-600">{project.budget ? (typeof project.budget === 'object' ? `${project.budget?.min ?? '?'} - ${project.budget?.max ?? '?'} sats` : project.budget) : 'N/A'}</span>
                   </div>
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-3 group-hover:text-orange-600 transition-colors">
@@ -263,7 +263,7 @@ const FeaturedProjects = () => {
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Progress</span>
-                    <span className="font-medium">{project.raised} / {project.budget && typeof project.budget === 'object' ? `${project.budget?.min || '?'} - ${project.budget?.max || '?'} BTC` : project.budget || 'N/A'}</span>
+                    <span className="font-medium">{project.raised} / {project.budget && typeof project.budget === 'object' ? `${project.budget?.min ?? '?'} - ${project.budget?.max ?? '?'} sats` : project.budget || 'N/A'}</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div 

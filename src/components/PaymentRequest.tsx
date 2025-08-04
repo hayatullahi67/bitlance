@@ -108,9 +108,9 @@ const PaymentRequest = ({ invoice, onPayment }: PaymentRequestProps) => {
               <p className="text-2xl font-bold text-orange-600">
                 {invoice.amount} {invoice.currency}
               </p>
-              {invoice.currency === "BTC" && (
+              {invoice.currency === "sats" && (
                 <p className="text-sm text-gray-500">
-                  ≈ {(parseFloat(invoice.amount) * 100000000).toLocaleString()} sats
+                  ≈ {(parseFloat(invoice.amount) / 100000000).toFixed(8)} BTC (1 BTC = 100,000,000 sats)
                 </p>
               )}
             </div>
@@ -160,7 +160,7 @@ const PaymentRequest = ({ invoice, onPayment }: PaymentRequestProps) => {
                 {invoice.amount} {invoice.currency}
               </p>
               <p className="text-sm text-orange-600">
-                ≈ $2,850 USD
+                ≈ 2,850,000 sats
               </p>
               <p className="text-xs text-orange-500 mt-1">
                 Funds will be held in escrow until work is completed

@@ -61,7 +61,7 @@ const BTCPayIntegration = ({ onInvoiceCreated, onPaymentConfirmed }: BTCPayInteg
       const mockInvoice: BTCPayInvoice = {
         id: `btcpay_${Date.now()}`,
         amount: invoiceData.amount,
-        currency: "BTC",
+        currency: "sats",
         status: "new",
         checkoutLink: `${btcpayConfig.serverUrl}/invoice/${Date.now()}`,
         paymentMethods: [
@@ -141,7 +141,7 @@ const BTCPayIntegration = ({ onInvoiceCreated, onPaymentConfirmed }: BTCPayInteg
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="amount">Amount (BTC)</Label>
+            <Label htmlFor="amount">Amount (sats)</Label>
             <Input
               id="amount"
               type="number"

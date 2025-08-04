@@ -220,7 +220,7 @@ const ClientDashboard = () => {
         rating: 4.7,
         location: "London, UK"
       },
-      proposal: "0.04 BTC",
+      proposal: "4000000 sats",
       submitted: "2 hours ago",
       status: "New"
     },
@@ -233,7 +233,7 @@ const ClientDashboard = () => {
         rating: 4.9,
         location: "Toronto, CA"
       },
-      proposal: "0.008 BTC",
+      proposal: "800000 sats",
       submitted: "4 hours ago",
       status: "New"
     }
@@ -469,9 +469,9 @@ const ClientDashboard = () => {
 
                     const formatBudget = (budget: any) => {
                       if (budget?.type === "fixed") {
-                        return `${budget.min} - ${budget.max} BTC`;
+                        return `${budget.min} - ${budget.max} sats`;
                       } else if (budget?.type === "hourly") {
-                        return `${budget.hourly} BTC/hour`;
+                        return `${budget.hourly} sats/hour`;
                       }
                       return "Budget not set";
                     };
@@ -672,7 +672,7 @@ const ClientDashboard = () => {
                         </div>
                         <div className="text-right">
                           <div className="text-lg font-semibold text-orange-600 mb-2">
-                            {job.budget?.type === "fixed" ? `${job.budget.min}-${job.budget.max} BTC` : `${job.budget?.hourly} BTC/hour`}
+                            {job.budget?.type === "fixed" ? `${job.budget.min}-${job.budget.max} sats` : `${job.budget?.hourly} sats/hour`}
                           </div>
                           <Badge className="bg-blue-100 text-blue-800">
                             <CheckCircle className="h-4 w-4 mr-1" />
@@ -775,7 +775,7 @@ const ClientDashboard = () => {
                     </div>
                     <div className="flex-1">
                       <p className="font-medium">Payment completed to Sarah Johnson</p>
-                      <p className="text-sm text-gray-600">0.025 BTC sent for E-commerce Website Development</p>
+                      <p className="text-sm text-gray-600">2500000 sats sent for E-commerce Website Development</p>
                       <p className="text-xs text-gray-500">2 hours ago</p>
                     </div>
                   </div>

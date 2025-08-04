@@ -16,8 +16,8 @@ const PaymentPage = (props) => {
   const mockInvoice = {
     id: "inv_123456",
     projectTitle: "Build Modern E-commerce Platform",
-    amount: "0.05",
-    currency: "BTC",
+    amount: "5000000",
+    currency: "sats",
     status: "pending" as const,
     createdAt: new Date(),
     note: "Payment for milestone 1: Frontend development completed",
@@ -29,27 +29,27 @@ const PaymentPage = (props) => {
     {
       id: "job_1",
       projectTitle: "E-commerce Platform Development",
-      amount: "0.08",
-      currency: "BTC",
+      amount: "8000000",
+      currency: "sats",
       status: "delivered" as const,
       freelancerName: "Alice Developer",
       clientName: "TechCorp Inc.",
       createdAt: new Date(),
       deliveredAt: new Date(),
-      platformFee: "0.004",
-      freelancerAmount: "0.076"
+      platformFee: "400000",
+      freelancerAmount: "7600000"
     },
     {
       id: "job_2", 
       projectTitle: "Mobile App UI Design",
-      amount: "0.03",
-      currency: "BTC",
+      amount: "3000000",
+      currency: "sats",
       status: "escrowed" as const,
       freelancerName: "Bob Designer",
       clientName: "StartupCo",
       createdAt: new Date(),
-      platformFee: "0.0015",
-      freelancerAmount: "0.0285"
+      platformFee: "150000",
+      freelancerAmount: "2850000"
     }
   ];
 

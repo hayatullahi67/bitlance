@@ -47,7 +47,7 @@ const JobDetails = (props) => {
         name: "Static Client",
         avatar: "https://ui-avatars.com/api/?name=Client",
         rating: 4.8,
-        totalSpent: "1 BTC",
+        totalSpent: "100000000 sats",
         location: "Internet"
       },
       description: "This is a static job description for UI purposes.",
@@ -66,7 +66,7 @@ const JobDetails = (props) => {
         avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
         rating: 4.9,
         hourlyRate: 0.002,
-        totalEarnings: "8.2 BTC",
+        totalEarnings: "82000000 sats",
         location: "Toronto, Canada"
       },
       proposal: {
@@ -85,7 +85,7 @@ const JobDetails = (props) => {
         avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
         rating: 4.7,
         hourlyRate: 0.0018,
-        totalEarnings: "5.1 BTC",
+        totalEarnings: "51000000 sats",
         location: "Barcelona, Spain"
       },
       proposal: {
@@ -281,7 +281,7 @@ const JobDetails = (props) => {
                               </div>
                               <div className="text-right">
                                 <p className="font-semibold text-gray-900">
-                                  {proposal.proposal.bid} BTC
+                                  {proposal.proposal.bid} sats
                                 </p>
                                 <p className="text-sm text-gray-600">
                                   {proposal.proposal.deliveryTime}
@@ -394,7 +394,7 @@ const JobDetails = (props) => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Avg. Bid</span>
-                    <span className="font-semibold">0.09 BTC</span>
+                    <span className="font-semibold">9000000 sats</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Avg. Delivery</span>

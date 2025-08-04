@@ -237,9 +237,9 @@ const SubmitProposal = () => {
                 step="any"
                 value={budget}
                 onChange={e => setBudget(e.target.value)}
-                placeholder="e.g. 0.01 (BTC)"
+                                      placeholder="e.g. 1000000 (sats)"
               />
-              <div className="text-xs text-gray-400 mt-1">Enter your proposed amount in BTC.</div>
+                              <div className="text-xs text-gray-400 mt-1">Enter your proposed amount in sats.</div>
             </div>
             <div className="mb-5">
               <label className="block font-medium mb-1">Delivery Time</label>
@@ -302,7 +302,7 @@ const SubmitProposal = () => {
                   <span className="font-semibold">Cover Letter:</span>
                   <div className="mt-1 whitespace-pre-line text-gray-800 bg-gray-100 rounded p-3">{coverLetter}</div>
                 </div>
-                <div className="mb-2 text-sm text-gray-700"><span className="font-semibold">Budget:</span> {budget ? `${budget} BTC` : <span className="text-gray-400">(Not specified)</span>}</div>
+                <div className="mb-2 text-sm text-gray-700"><span className="font-semibold">Budget:</span> {budget ? `${budget} sats` : <span className="text-gray-400">(Not specified)</span>}</div>
                 <div className="mb-2 text-sm text-gray-700"><span className="font-semibold">Delivery:</span> {delivery || <span className="text-gray-400">(Not specified)</span>}</div>
                 {portfolioLinks.length > 0 && (
                   <div className="mb-2 text-sm text-gray-700">

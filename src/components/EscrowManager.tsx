@@ -62,7 +62,7 @@ const EscrowManager = ({ jobs, userType, onStatusUpdate }: EscrowManagerProps) =
         onStatusUpdate?.(selectedJob.id, "accepted");
         toast({
           title: "Funds Released!",
-          description: `${selectedJob.freelancerAmount} BTC sent to freelancer. ${selectedJob.platformFee} BTC platform fee retained.`,
+          description: `${selectedJob.freelancerAmount} sats sent to freelancer. ${selectedJob.platformFee} sats platform fee retained.`,
         });
         setShowReleaseModal(false);
         setSelectedJob(null);

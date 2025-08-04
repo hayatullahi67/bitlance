@@ -181,10 +181,10 @@ const FreelancerDashboard = () => {
         rating: 4.9,
         location: "Remote"
       },
-      proposalAmount: "0.035 BTC",
+      proposalAmount: "3500000 sats",
       submittedDate: "Dec 5, 2025",
       status: "Under Review",
-      jobBudget: "0.02-0.04 BTC",
+      jobBudget: "2000000-4000000 sats",
       jobType: "Fixed Price",
       daysAgo: "3 days ago",
       coverLetter: "I have extensive experience in mobile app design with a focus on fintech applications. My portfolio includes similar projects for payment apps and financial dashboards.",
@@ -198,10 +198,10 @@ const FreelancerDashboard = () => {
         rating: 4.6,
         location: "Remote"
       },
-      proposalAmount: "0.02 BTC",
+      proposalAmount: "2000000 sats",
       submittedDate: "Dec 3, 2025",
       status: "Viewed",
-      jobBudget: "0.015-0.025 BTC",
+      jobBudget: "1500000-2500000 sats",
       jobType: "Fixed Price",
       daysAgo: "5 days ago",
       coverLetter: "I've customized over 50 WordPress themes for e-commerce sites. I specialize in WooCommerce integration and responsive design.",
@@ -215,10 +215,10 @@ const FreelancerDashboard = () => {
         rating: 4.8,
         location: "Remote"
       },
-      proposalAmount: "0.008 BTC",
+      proposalAmount: "800000 sats",
       submittedDate: "Dec 1, 2025",
       status: "Shortlisted",
-      jobBudget: "0.005-0.01 BTC",
+      jobBudget: "500000-1000000 sats",
       jobType: "Per Article",
       daysAgo: "7 days ago",
       coverLetter: "I'm a crypto enthusiast with 3 years of experience writing about blockchain technology. I can deliver engaging, SEO-optimized content.",
@@ -232,10 +232,10 @@ const FreelancerDashboard = () => {
         rating: 4.7,
         location: "Remote"
       },
-      proposalAmount: "0.06 BTC",
+      proposalAmount: "6000000 sats",
       submittedDate: "Nov 28, 2025",
       status: "Rejected",
-      jobBudget: "0.04-0.08 BTC",
+      jobBudget: "4000000-8000000 sats",
       jobType: "Fixed Price",
       daysAgo: "10 days ago",
       coverLetter: "I've developed several healthcare apps with React Native. I understand HIPAA compliance and can implement secure data handling.",
@@ -289,9 +289,9 @@ const FreelancerDashboard = () => {
   const formatBudget = (budget) => {
     if (!budget || typeof budget !== 'object') return 'N/A';
     if (budget.type === 'fixed') {
-      return `${budget.min ?? '?'} - ${budget.max ?? '?'} BTC`;
+      return `${budget.min ?? '?'} - ${budget.max ?? '?'} sats`;
     } else if (budget.type === 'hourly') {
-      return `${budget.hourly ?? '?'} BTC/hour`;
+      return `${budget.hourly ?? '?'} sats/hour`;
     }
     return 'N/A';
   };
@@ -415,8 +415,8 @@ const FreelancerDashboard = () => {
               <Wallet className="h-4 w-4 text-orange-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0.25 BTC</div>
-              <p className="text-xs text-muted-foreground">~$11,250 USD</p>
+              <div className="text-2xl font-bold">25000000 sats</div>
+              <p className="text-xs text-muted-foreground">~11,250,000 sats</p>
             </CardContent>
           </Card>
 
@@ -868,12 +868,12 @@ const FreelancerDashboard = () => {
                       <div className="flex justify-between items-center">
                         <div>
                           <p className="text-sm text-gray-600">This Month</p>
-                          <p className="text-2xl font-bold">0.08 BTC</p>
-                          <p className="text-sm text-gray-500">~$3,600 USD</p>
+                          <p className="text-2xl font-bold">8000000 sats</p>
+                          <p className="text-sm text-gray-500">~3,600,000 sats</p>
                         </div>
                         <div className="text-right">
                           <p className="text-sm text-gray-600">Last Month</p>
-                          <p className="text-lg font-semibold">0.12 BTC</p>
+                          <p className="text-lg font-semibold">12000000 sats</p>
                           <p className="text-sm text-red-500">-33%</p>
                         </div>
                       </div>
@@ -881,15 +881,15 @@ const FreelancerDashboard = () => {
                       <div className="space-y-3">
                         <div className="flex justify-between text-sm">
                           <span>Pending Payments</span>
-                          <span className="font-medium">0.025 BTC</span>
+                          <span className="font-medium">2500000 sats</span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span>Available for Withdrawal</span>
-                          <span className="font-medium text-green-600">0.055 BTC</span>
+                          <span className="font-medium text-green-600">5500000 sats</span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span>Platform Fees</span>
-                          <span className="font-medium text-orange-600">0.004 BTC</span>
+                          <span className="font-medium text-orange-600">400000 sats</span>
                         </div>
                       </div>
                       
@@ -918,7 +918,7 @@ const FreelancerDashboard = () => {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-medium text-green-600">+0.025 BTC</p>
+                          <p className="font-medium text-green-600">+2500000 sats</p>
                           <p className="text-sm text-gray-500">2 days ago</p>
                         </div>
                       </div>
@@ -950,7 +950,7 @@ const FreelancerDashboard = () => {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-medium text-green-600">+0.03 BTC</p>
+                          <p className="font-medium text-green-600">+3000000 sats</p>
                           <p className="text-sm text-gray-500">1 week ago</p>
                         </div>
                       </div>

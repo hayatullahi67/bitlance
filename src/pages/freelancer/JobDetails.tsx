@@ -179,9 +179,9 @@ const JobDetails = () => {
 
   const formatBudget = (budget: any) => {
     if (budget?.type === "fixed") {
-      return `${budget.min} - ${budget.max} BTC`;
+      return `${budget.min} - ${budget.max} sats`;
     } else if (budget?.type === "hourly") {
-      return `${budget.hourly} BTC/hour`;
+      return `${budget.hourly} sats/hour`;
     }
     return "Budget not set";
   };
@@ -539,7 +539,7 @@ const JobDetails = () => {
               />
               <Input
                 type="number"
-                placeholder="Proposed budget (BTC)"
+                placeholder="Proposed budget (sats)"
                 value={proposalBudget}
                 onChange={e => setProposalBudget(e.target.value)}
               />

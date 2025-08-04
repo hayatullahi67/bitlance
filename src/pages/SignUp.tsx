@@ -308,7 +308,7 @@ const SignUp = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="freelancer-rate">Hourly Rate (in USD equivalent)</Label>
+                    <Label htmlFor="freelancer-rate">Hourly Rate (in sats)</Label>
                     <Input id="freelancer-rate" type="number" placeholder="50" />
                   </div> */}
 

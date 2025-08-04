@@ -266,7 +266,7 @@ const EditJob = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="min-budget">
-                        {jobData.numberOfFreelancers > 1 ? "Min Budget per Freelancer (BTC) *" : "Minimum Budget (BTC) *"}
+                        {jobData.numberOfFreelancers > 1 ? "Min Budget per Freelancer (sats) *" : "Minimum Budget (sats) *"}
                       </Label>
                       <Input
                         id="min-budget"
@@ -279,7 +279,7 @@ const EditJob = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="max-budget">
-                        {jobData.numberOfFreelancers > 1 ? "Max Budget per Freelancer (BTC) *" : "Maximum Budget (BTC) *"}
+                        {jobData.numberOfFreelancers > 1 ? "Max Budget per Freelancer (sats) *" : "Maximum Budget (sats) *"}
                       </Label>
                       <Input
                         id="max-budget"
@@ -294,7 +294,7 @@ const EditJob = () => {
                 ) : (
                   <div className="space-y-2">
                     <Label htmlFor="hourly-rate">
-                      {jobData.numberOfFreelancers > 1 ? "Hourly Rate per Freelancer (BTC) *" : "Hourly Rate (BTC) *"}
+                      {jobData.numberOfFreelancers > 1 ? "Hourly Rate per Freelancer (sats) *" : "Hourly Rate (sats) *"}
                     </Label>
                     <Input
                       id="hourly-rate"
@@ -309,8 +309,8 @@ const EditJob = () => {
                 {/* Show calculated total if more than one freelancer */}
                 {jobData.numberOfFreelancers > 1 && (
                   <div className="text-sm text-gray-500 mt-2">
-                    Total Min Budget: {parseFloat(jobData.budget.min || "0") * jobData.numberOfFreelancers} BTC<br />
-                    Total Max Budget: {parseFloat(jobData.budget.max || "0") * jobData.numberOfFreelancers} BTC
+                    Total Min Budget: {parseFloat(jobData.budget.min || "0") * jobData.numberOfFreelancers} sats<br />
+                    Total Max Budget: {parseFloat(jobData.budget.max || "0") * jobData.numberOfFreelancers} sats
                   </div>
                 )}
                 {errors.budget && <p className="text-sm text-red-500">{errors.budget}</p>}

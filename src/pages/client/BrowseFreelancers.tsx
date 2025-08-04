@@ -23,7 +23,7 @@ const BrowseFreelancers = () => {
   const [filters, setFilters] = useState<SearchFilters>({});
   const [sortBy, setSortBy] = useState<SortOptions>({ field: 'newest', direction: 'desc' });
   const [selectedSort, setSelectedSort] = useState("newest");
-  const [btcUsdRate, setBtcUsdRate] = useState<number>(0);
+  const [satsUsdRate, setSatsUsdRate] = useState<number>(0);
 
   // Load freelancers on component mount
   useEffect(() => {
@@ -33,8 +33,8 @@ const BrowseFreelancers = () => {
   useEffect(() => {
     fetch('https://blockchain.info/ticker')
       .then(res => res.json())
-      .then(data => setBtcUsdRate(data.USD.last))
-      .catch(() => setBtcUsdRate(0));
+          .then(data => setSatsUsdRate(data.USD.last))
+    .catch(() => setSatsUsdRate(0));
   }, []);
 
   const loadFreelancers = async () => {
@@ -92,10 +92,10 @@ const BrowseFreelancers = () => {
     return `$${rate ?? 0}/hour`;
   };
 
-  const formatBTCRate = (rate: number | undefined) => {
-    if (!btcUsdRate || btcUsdRate === 0 || !rate) return "~0.0000 BTC/hour";
-    const btcRate = (rate / btcUsdRate).toFixed(4);
-    return `~${btcRate} BTC/hour`;
+    const formatSatsRate = (rate: number | undefined) => {
+    if (!satsUsdRate || satsUsdRate === 0 || !rate) return "~0 sats/hour";
+    const satsRate = (rate / satsUsdRate).toFixed(4);
+    return `~${satsRate} sats/hour`;
   };
 
   return (
@@ -220,7 +220,7 @@ const BrowseFreelancers = () => {
                             {formatHourlyRate(freelancer.hourlyRate)}
                           </div>
                           <div className="text-xs text-gray-500">
-                            {formatBTCRate(freelancer.hourlyRate)}
+                            {formatSatsRate(freelancer.hourlyRate)}
                           </div>
                           <div className="flex items-center space-x-1 mt-2">
                           </div>

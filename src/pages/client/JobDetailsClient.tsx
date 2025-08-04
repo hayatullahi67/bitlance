@@ -348,9 +348,9 @@ const JobDetailsClient = () => {
 
   const formatBudget = (budget: JobData['budget']) => {
     if (budget.type === "fixed") {
-      return `${budget.min} - ${budget.max} BTC`;
+      return `${budget.min} - ${budget.max} sats`;
     } else {
-      return `${budget.hourly} BTC/hour`;
+              return `${budget.hourly} sats/hour`;
     }
   };
 
@@ -570,7 +570,7 @@ const JobDetailsClient = () => {
                         </div>
                         <div>
                           <div className="mb-2 text-sm text-gray-500">Proposal Amount</div>
-                          <span className="font-medium text-orange-600 text-lg">{selectedProposal.budget ? `${selectedProposal.budget} BTC` : 'N/A'}</span>
+                          <span className="font-medium text-orange-600 text-lg">{selectedProposal.budget ? `${selectedProposal.budget} sats` : 'N/A'}</span>
                         </div>
                         <div>
                           <div className="mb-2 text-sm text-gray-500">Submitted</div>
@@ -707,7 +707,7 @@ const JobDetailsClient = () => {
                         </div>
                         <div className="text-right">
                           <div className="text-lg font-semibold text-orange-600">
-                            {proposal.budget ?  `${proposal.budget} BTC` : 'N/A'}
+                            {proposal.budget ?  `${proposal.budget} sats` : 'N/A'}
                           </div>
                           <div className="text-sm text-gray-500">
                             {proposal.createdAt && proposal.createdAt.toDate
