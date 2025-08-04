@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Zap, User, Briefcase, Menu, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { auth, db } from "@/lib/firebaseClient";
@@ -16,8 +16,13 @@ import LandingHeader from "@/components/layout/LandingHeader";
 
 const SignUp = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("client");
+  const [activeTab, setActiveTab] = useState(() => {
+    // Check if we have state from navigation
+    const state = location.state as { activeTab?: string };
+    return state?.activeTab || "client";
+  });
   const [isLoading, setIsLoading] = useState(false);
 
   const [formData, setFormData] = useState({

@@ -182,7 +182,7 @@ const FreelancerDashboard = () => {
         location: "Remote"
       },
       proposalAmount: "0.035 BTC",
-      submittedDate: "Dec 5, 2024",
+      submittedDate: "Dec 5, 2025",
       status: "Under Review",
       jobBudget: "0.02-0.04 BTC",
       jobType: "Fixed Price",
@@ -199,7 +199,7 @@ const FreelancerDashboard = () => {
         location: "Remote"
       },
       proposalAmount: "0.02 BTC",
-      submittedDate: "Dec 3, 2024",
+      submittedDate: "Dec 3, 2025",
       status: "Viewed",
       jobBudget: "0.015-0.025 BTC",
       jobType: "Fixed Price",
@@ -216,7 +216,7 @@ const FreelancerDashboard = () => {
         location: "Remote"
       },
       proposalAmount: "0.008 BTC",
-      submittedDate: "Dec 1, 2024",
+      submittedDate: "Dec 1, 2025",
       status: "Shortlisted",
       jobBudget: "0.005-0.01 BTC",
       jobType: "Per Article",
@@ -233,7 +233,7 @@ const FreelancerDashboard = () => {
         location: "Remote"
       },
       proposalAmount: "0.06 BTC",
-      submittedDate: "Nov 28, 2024",
+      submittedDate: "Nov 28, 2025",
       status: "Rejected",
       jobBudget: "0.04-0.08 BTC",
       jobType: "Fixed Price",

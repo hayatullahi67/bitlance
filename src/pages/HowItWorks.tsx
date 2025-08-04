@@ -290,7 +290,7 @@ const HowItWorks = () => {
                 </ul>
                 <Button 
                   className="w-full mt-6 bg-orange-600 hover:bg-orange-700"
-                  onClick={() => navigate('/signup')}
+                  onClick={() => navigate('/signup', { state: { activeTab: 'freelancer' } })}
                 >
                   Start Freelancing
                   <ArrowRight className="w-4 h-4 ml-2" />
@@ -314,14 +314,14 @@ const HowItWorks = () => {
             <Button 
               size="lg" 
               variant="secondary"
-              onClick={() => navigate('/signup')}
+              onClick={() => navigate('/signup', { state: { activeTab: 'freelancer' } })}
             >
               Create Account
             </Button>
             <Button 
               size="lg" 
               variant="outline"
-              className="border-white text-white hover:bg-white hover:text-orange-600"
+              className="border-white text-orange-600"
               onClick={() => navigate('/browse-jobs')}
             >
               Browse Jobs

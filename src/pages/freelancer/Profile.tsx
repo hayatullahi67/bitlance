@@ -709,7 +709,7 @@ const Profile: React.FC = () => {
                   <Input
                     value={editData.date || ''}
                     onChange={(e) => setEditData({ ...editData, date: e.target.value })}
-                    placeholder="e.g., Feb 2024"
+                    placeholder="e.g., Feb 2025"
                   />
                 </div>
                 <div>

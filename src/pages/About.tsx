@@ -21,22 +21,16 @@ const About = () => {
 
   const team = [
     {
-      name: "John Doe",
-      role: "CEO & Founder",
+      name: "Destiny",
+      role: "Co-Founder & CMO",
       bio: "Passionate about connecting talent with opportunity",
-      avatar: "JD"
+      avatar: "D"
     },
     {
-      name: "Jane Smith",
-      role: "CTO",
+      name: "Ola",
+      role: "Co-Founder & CTO",
       bio: "Building the future of freelance platforms",
-      avatar: "JS"
-    },
-    {
-      name: "Mike Johnson",
-      role: "Head of Product",
-      bio: "Creating amazing user experiences",
-      avatar: "MJ"
+      avatar: "O"
     }
   ];
 
@@ -65,22 +59,22 @@ const About = () => {
 
   const milestones = [
     {
-      year: "2024",
+      year: "2025",
       title: "Platform Launch",
       description: "Bitlance officially launched with core features"
     },
     {
-      year: "2024",
+      year: "2025",
       title: "10K+ Users",
       description: "Reached our first major milestone of active users"
     },
     {
-      year: "2024",
+      year: "2025",
       title: "Mobile App",
       description: "Released our mobile application for iOS and Android"
     },
     {
-      year: "2024",
+      year: "2025",
       title: "Global Expansion",
       description: "Expanded to serve freelancers and clients worldwide"
     }
@@ -203,7 +197,7 @@ const About = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {team.map((member, index) => (
               <Card key={index} className="text-center hover:shadow-lg transition-shadow">
                 <CardContent className="pt-6">
@@ -280,14 +274,14 @@ const About = () => {
             >
               Get Started Today
             </Button>
-            <Button 
+            {/* <Button 
               size="lg" 
               variant="outline"
               className="border-white text-white hover:bg-white hover:text-orange-600"
               onClick={() => navigate('/contact')}
             >
               Contact Us
-            </Button>
+            </Button> */}
           </div>
         </div>
       </div>

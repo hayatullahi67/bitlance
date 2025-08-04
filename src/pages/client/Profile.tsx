@@ -125,7 +125,7 @@ const ClientProfile = () => {
       freelancer: "Sarah Johnson",
       budget: "0.08 BTC",
       status: "In Progress",
-      deadline: "Dec 20, 2024",
+      deadline: "Dec 20, 2025",
       progress: 65
     },
     {
@@ -145,7 +145,7 @@ const ClientProfile = () => {
       title: "Website Development",
       freelancer: "Emily Rodriguez",
       amount: "0.06 BTC",
-      completedDate: "Nov 10, 2024",
+      completedDate: "Nov 10, 2025",
       rating: 5,
       feedback: "Excellent work! Emily delivered exactly what we needed on time and within budget."
     },
@@ -154,7 +154,7 @@ const ClientProfile = () => {
       title: "Logo Design",
       freelancer: "Alex Thompson",
       amount: "0.02 BTC",
-      completedDate: "Oct 25, 2024",
+      completedDate: "Oct 25, 2025",
       rating: 5,
       feedback: "Great design work and very professional communication throughout the project."
     }

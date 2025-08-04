@@ -67,6 +67,7 @@ const Header = () => {
 };
 
 const Hero = () => {
+  const navigate = useNavigate();
   return (
     <section className="py-20 px-4">
       <div className="container mx-auto max-w-6xl">
@@ -88,6 +89,7 @@ const Hero = () => {
               <Button 
                 size="lg" 
                 className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-8 py-4 text-lg"
+                onClick={() => navigate('/signup', { state: { activeTab: 'client' } })}
               >
                 Post a Job
                 <ArrowRight className="ml-2 w-5 h-5" />
@@ -96,6 +98,7 @@ const Hero = () => {
                 variant="outline" 
                 size="lg"
                 className="border-2 border-orange-200 text-orange-600 hover:bg-orange-50 px-8 py-4 text-lg"
+                onClick={() => navigate('/jobs')}
               >
                 Find Work
               </Button>
@@ -248,7 +251,7 @@ const FeaturedProjects = () => {
                   </div>
                   <div className="flex items-center space-x-1">
                     <Zap className="w-4 h-4 text-orange-500" />
-                    <span className="text-sm font-medium text-orange-600">{typeof project.budget === 'object' ? `${project.budget.min || '?'} - ${project.budget.max || '?'} BTC` : project.budget}</span>
+                    <span className="text-sm font-medium text-orange-600">{project.budget ? (typeof project.budget === 'object' ? `${project.budget?.min || '?'} - ${project.budget?.max || '?'} BTC` : project.budget) : 'N/A'}</span>
                   </div>
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-3 group-hover:text-orange-600 transition-colors">
@@ -260,7 +263,7 @@ const FeaturedProjects = () => {
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Progress</span>
-                    <span className="font-medium">{project.raised} / {typeof project.budget === 'object' ? `${project.budget.min || '?'} - ${project.budget.max || '?'} BTC` : project.budget}</span>
+                    <span className="font-medium">{project.raised} / {project.budget && typeof project.budget === 'object' ? `${project.budget?.min || '?'} - ${project.budget?.max || '?'} BTC` : project.budget || 'N/A'}</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div 
@@ -391,7 +394,7 @@ const HowItWorks = () => {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <h3 className="text-3xl font-bold text-gray-900 mb-6">
-                💼 Bitcoin-Native Freelancing Platform
+                 Bitcoin-Native Freelancing Platform
               </h3>
               <p className="text-lg text-gray-600 mb-8">
                 Empowering freelancers and clients with trustless, milestone-based Bitcoin payments. Built for freedom, built for Bitcoin.
@@ -482,6 +485,7 @@ const testimonials = [
 ];
 
 const Testimonials = () => {
+  const navigate = useNavigate();
   return (
     <section className="py-20 px-4 bg-white">
       <div className="container mx-auto max-w-6xl">
@@ -535,10 +539,16 @@ const Testimonials = () => {
               Join the growing community of freelancers who've chosen financial sovereignty over traditional payment systems.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-white text-orange-600 font-semibold px-8 py-3 rounded-lg hover:bg-orange-50 transition-colors">
+              <button 
+                className="bg-white text-orange-600 font-semibold px-8 py-3 rounded-lg hover:bg-orange-50 transition-colors"
+                onClick={() => navigate('/signup', { state: { activeTab: 'freelancer' } })}
+              >
                 Start Freelancing
               </button>
-              <button className="border-2 border-white text-white font-semibold px-8 py-3 rounded-lg hover:bg-white hover:text-orange-600 transition-colors">
+              <button 
+                className="border-2 border-white text-white font-semibold px-8 py-3 rounded-lg hover:bg-white hover:text-orange-600 transition-colors"
+                onClick={() => navigate('/signup', { state: { activeTab: 'client' } })}
+              >
                 Post a Job
               </button>
             </div>
@@ -584,7 +594,7 @@ const Footer = () => {
             <ul className="space-y-3">
               <li><button onClick={() => navigate('/jobs')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left">Browse Jobs</button></li>
               <li><button onClick={() => navigate('/find-talent')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left">Find Talent</button></li>
-              <li><button onClick={() => navigate('/post-job')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left">Post a Job</button></li>
+              <li><button onClick={() => navigate('/signup', { state: { activeTab: 'client' } })} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left">Post a Job</button></li>
               <li><button onClick={() => navigate('/how-it-works')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left">How it Works</button></li>
               <li><button onClick={() => navigate('/pricing')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-left">Pricing</button></li>
             </ul>
@@ -615,7 +625,7 @@ const Footer = () => {
         <div className="border-t border-gray-800 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm mb-4 md:mb-0">
-              © 2024 Bitlance. Built on Bitcoin, powered by Lightning Network.
+              © 2025 Bitlance. Built on Bitcoin, powered by Lightning Network.
             </p>
             <div className="flex items-center space-x-4 text-sm">
               <span className="text-gray-400">Status:</span>

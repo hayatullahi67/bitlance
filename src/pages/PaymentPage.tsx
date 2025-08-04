@@ -69,7 +69,7 @@ const PaymentPage = (props) => {
     <Layout 
       {...props}
       title="Payment Center"
-      onPostJob={() => navigate("../post-job")}
+      onPostJob={() => navigate("/signup", { state: { activeTab: 'client' } })}
       onLogout={() => navigate("/login")}
     >
       <div className="container mx-auto px-4 py-8">
